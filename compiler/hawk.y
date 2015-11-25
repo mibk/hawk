@@ -8,6 +8,8 @@ import (
 var (
 	parser *parse.Parser
 	ast    *Tree
+
+	defaultAction BlockStmt
 )
 
 %}
@@ -47,6 +49,14 @@ paction:
 	expr blockstmt
 	{
 		$$ = PatternAction{$1, BlockStmt{$2}}
+	}
+|	expr
+	{
+		$$ = PatternAction{$1, defaultAction}
+	}
+|	blockstmt
+	{
+		$$ = PatternAction{Lit(1), BlockStmt{$1}}
 	}
 
 blockstmt:
@@ -137,6 +147,9 @@ exprlist:
 
 func Compile(src []byte, p *parse.Parser) *Tree {
 	parser = p
+	defaultAction = BlockStmt{[]Stmt{
+		ExprStmt{CallExpr{parser.Writer, "print", []Expr{Col{parser, Lit(0)}}}},
+	}}
 	yyParse(&yyLex{src: src})
 	return ast
 }

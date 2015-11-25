@@ -9,10 +9,14 @@ import (
 )
 
 type Tree struct {
-	pAction PatternAction
+	pActions []PatternAction
 }
 
-func (t Tree) Exec() { t.pAction.Exec() }
+func (t Tree) Exec() {
+	for _, a := range t.pActions {
+		a.Exec()
+	}
+}
 
 type PatternAction struct {
 	pattern Expr

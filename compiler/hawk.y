@@ -15,13 +15,14 @@ var (
 %}
 
 %union {
-	num      int
-	sym      string
-	expr     Expr
-	exprlist []Expr
-	stmt     Stmt
-	stmtlist []Stmt
-	paction	 PatternAction
+	num         int
+	sym         string
+	expr        Expr
+	exprlist    []Expr
+	stmt        Stmt
+	stmtlist    []Stmt
+	paction	    PatternAction
+	pactionlist []PatternAction
 }
 
 %type	<expr>	expr uexpr
@@ -29,6 +30,7 @@ var (
 %type	<stmt>	stmt
 %type	<stmtlist>	stmtlist blockstmt
 %type	<paction>	paction
+%type	<pactionlist>	pactionlist
 
 %token	<num>	NUM
 %token	<sym>	IDENT
@@ -40,9 +42,19 @@ var (
 %%
 
 top:
-	paction
+	pactionlist
 	{
 		ast = &Tree{$1}
+	}
+
+pactionlist:
+	paction
+	{
+		$$ = append($$, $1)
+	}
+|	pactionlist ';' paction
+	{
+		$$ = append($1, $3)
 	}
 
 paction:

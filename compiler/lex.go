@@ -24,12 +24,14 @@ func (l *yyLex) Lex(yylval *yySymType) int {
 		c := l.next()
 		if unicode.IsDigit(c) {
 			return l.lexNum(yylval)
+		} else if unicode.IsLetter(c) {
+			return l.lexIdent(yylval)
 		}
 		switch c {
 		case eof:
 			l.emit()
 			return eof
-		case '$':
+		case ';', '{', '}', ',', '(', ')', '$':
 			l.emit()
 			return int(c)
 		case '=':
@@ -72,6 +74,15 @@ func (l *yyLex) lexNum(yylval *yySymType) int {
 	num := l.emit()
 	yylval.num, _ = strconv.Atoi(string(num))
 	return NUM
+}
+
+func (l *yyLex) lexIdent(yylval *yySymType) int {
+	for unicode.IsLetter(l.next()) {
+	}
+	l.backup()
+	sym := string(l.emit())
+	yylval.sym = sym
+	return IDENT
 }
 
 func (l *yyLex) next() rune {

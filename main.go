@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	p := &parse.Parser{}
+	p := parse.NewParser(os.Stdout)
 	source := []byte(os.Args[1])
 	prog := compiler.Compile(source, p)
 
@@ -26,8 +26,6 @@ func main() {
 			log.Fatalf("ReadBytes: %s", err)
 		}
 		p.SetFields(strings.Fields(string(line)))
-		if prog.Match() {
-			os.Stdout.Write(line)
-		}
+		prog.Exec()
 	}
 }

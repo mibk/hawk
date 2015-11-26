@@ -136,16 +136,35 @@ func (c Col) Val() Value {
 	return NewStringValue(c.p.Field(n))
 }
 
-type BinaryOp struct {
+type BinaryExpr struct {
 	typ   int
 	left  Expr
 	right Expr
 }
 
-func (c BinaryOp) Val() Value {
-	cmp := c.left.Val().Cmp(c.right.Val())
+func (e BinaryExpr) Val() Value {
+	switch e.typ {
+	case ADD, SUB, MUL, DIV:
+		l := e.left.Val().Float64()
+		r := e.right.Val().Float64()
+		var f float64
+		switch e.typ {
+		case ADD:
+			f = l + r
+		case SUB:
+			f = l - r
+		case MUL:
+			f = l * r
+		case DIV:
+			f = l / r
+		default:
+			panic("unreachable")
+		}
+		return NewNumberValue(f)
+	}
+	cmp := e.left.Val().Cmp(e.right.Val())
 	var b bool
-	switch c.typ {
+	switch e.typ {
 	case EQ:
 		b = cmp == 0
 	case NE:
@@ -158,10 +177,27 @@ func (c BinaryOp) Val() Value {
 		b = cmp == 1
 	case GE:
 		b = cmp >= 0
+	case SUB:
+	case MUL:
+	case DIV:
 	default:
 		panic("unreachable")
 	}
 	return NewBoolValue(b)
+}
+
+type UnaryExpr struct {
+	typ  int
+	expr Expr
+}
+
+func (e UnaryExpr) Val() Value {
+	switch e.typ {
+	case SUB:
+		return NewNumberValue(-e.expr.Val().Float64())
+	default:
+		panic("unreachable")
+	}
 }
 
 type Lit int

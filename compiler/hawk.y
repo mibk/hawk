@@ -33,6 +33,8 @@ var (
 %token       BEGIN END
 
 %left EQ NE LE GE LT GT
+%left ADD SUB
+%left MUL DIV
 
 %start top
 
@@ -133,33 +135,62 @@ expr:
 	}
 |	expr EQ expr
 	{
-		$$ = BinaryOp{EQ, $1, $3}
+		$$ = BinaryExpr{EQ, $1, $3}
 	}
 |	expr NE expr
 	{
-		$$ = BinaryOp{NE, $1, $3}
+		$$ = BinaryExpr{NE, $1, $3}
 	}
 |	expr LE expr
 	{
-		$$ = BinaryOp{LE, $1, $3}
+		$$ = BinaryExpr{LE, $1, $3}
 	}
 |	expr GE expr
 	{
-		$$ = BinaryOp{GE, $1, $3}
+		$$ = BinaryExpr{GE, $1, $3}
 	}
 |	expr LT expr
 	{
-		$$ = BinaryOp{LT, $1, $3}
+		$$ = BinaryExpr{LT, $1, $3}
 	}
 |	expr GT expr
 	{
-		$$ = BinaryOp{GT, $1, $3}
+		$$ = BinaryExpr{GT, $1, $3}
 	}
+|	expr ADD expr
+	{
+		$$ = BinaryExpr{ADD, $1, $3}
+	}
+|	expr SUB expr
+	{
+		$$ = BinaryExpr{SUB, $1, $3}
+	}
+|	expr MUL expr
+	{
+		$$ = BinaryExpr{MUL, $1, $3}
+	}
+|	expr DIV expr
+	{
+		$$ = BinaryExpr{DIV, $1, $3}
+	}
+
 
 uexpr:
 	NUM
 	{
 		$$ = Lit($1)
+	}
+|	ADD uexpr
+	{
+		$$ = $2
+	}
+|	SUB uexpr
+	{
+		$$ = UnaryExpr{SUB, $2}
+	}
+|	'(' expr ')'
+	{
+		$$ = $2
 	}
 |	IDENT
 	{

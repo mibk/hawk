@@ -60,6 +60,14 @@ func (l *yyLex) Lex(yylval *yySymType) int {
 				return GE
 			}
 			return GT
+		case '+':
+			return ADD
+		case '-':
+			return SUB
+		case '*':
+			return MUL
+		case '/':
+			return DIV
 		case ' ', '\t', '\n', '\r':
 			// ignore whitespace
 			l.emit()

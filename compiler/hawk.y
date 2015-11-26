@@ -15,26 +15,26 @@ var (
 %}
 
 %union {
-	num         int
-	sym         string
-	expr        Expr
-	exprlist    []Expr
-	stmt        Stmt
-	stmtlist    []Stmt
+	num      int
+	sym      string
+	expr     Expr
+	exprlist []Expr
+	stmt     Stmt
+	stmtlist []Stmt
 }
 
-%type	<expr>	expr uexpr
-%type	<exprlist>	exprlist
-%type	<stmt>	stmt paction
-%type	<stmtlist>	stmtlist blockstmt pactionlist
+%type <expr>     expr uexpr
+%type <exprlist> exprlist
+%type <stmt>     stmt paction
+%type <stmtlist> stmtlist blockstmt pactionlist
 
-%token	<num>	NUM
-%token	<sym>	IDENT
-%token		BEGIN END
+%token <num> NUM
+%token <sym> IDENT
+%token       BEGIN END
 
-%left		EQ NE LE GE LT GT
+%left EQ NE LE GE LT GT
 
-%start	top
+%start top
 
 %%
 

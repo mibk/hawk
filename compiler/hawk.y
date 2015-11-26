@@ -21,19 +21,16 @@ var (
 	exprlist    []Expr
 	stmt        Stmt
 	stmtlist    []Stmt
-	paction	    PatternAction
-	pactionlist []PatternAction
 }
 
 %type	<expr>	expr uexpr
 %type	<exprlist>	exprlist
-%type	<stmt>	stmt
-%type	<stmtlist>	stmtlist blockstmt
-%type	<paction>	paction
-%type	<pactionlist>	pactionlist
+%type	<stmt>	stmt paction
+%type	<stmtlist>	stmtlist blockstmt pactionlist
 
 %token	<num>	NUM
 %token	<sym>	IDENT
+%token		BEGIN END
 
 %left		EQ NE LE GE LT GT
 
@@ -44,13 +41,29 @@ var (
 top:
 	pactionlist
 	{
-		ast = &Tree{$1}
+		ast = &Tree{}
+		for i := 0; i < len($1); {
+			pa := $1[i]
+			switch pa.(type) {
+			case BeginAction:
+				ast.begin = append(ast.begin, pa)
+				goto del
+			case EndAction:
+				ast.end = append(ast.end, pa)
+				goto del
+			}
+			i++
+			continue
+		del:
+			$1 = append($1[:i], $1[i+1:]...)
+		}
+		ast.pActions = $1
 	}
 
 pactionlist:
 	paction
 	{
-		$$ = append($$, $1)
+		$$ = []Stmt{$1}
 	}
 |	pactionlist ';' paction
 	{
@@ -70,6 +83,14 @@ paction:
 	{
 		$$ = PatternAction{Lit(1), BlockStmt{$1}}
 	}
+|	BEGIN blockstmt
+	{
+		$$ = BeginAction{BlockStmt{$2}}
+	}
+|	END blockstmt
+	{
+		$$ = EndAction{BlockStmt{$2}}
+	}
 
 blockstmt:
 	'{' stmtlist '}'
@@ -83,7 +104,7 @@ stmtlist:
 	}
 |	stmt
 	{
-		$$ = append($$, $1)
+		$$ = []Stmt{$1}
 	}
 |	stmtlist ';' stmt
 	{
@@ -148,7 +169,7 @@ exprlist:
 	}
 |	expr
 	{
-		$$ = append($$, $1)
+		$$ = []Expr{$1}
 	}
 |	exprlist ',' expr
 	{

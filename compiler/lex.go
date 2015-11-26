@@ -4,7 +4,9 @@ package compiler
 //go:generate yacc -o hawk.go hawk.y
 
 import (
+	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"unicode"
 	"unicode/utf8"
@@ -81,6 +83,11 @@ func (l *yyLex) lexIdent(yylval *yySymType) int {
 	}
 	l.backup()
 	sym := string(l.emit())
+	if sym == "BEGIN" {
+		return BEGIN
+	} else if sym == "END" {
+		return END
+	}
 	yylval.sym = sym
 	return IDENT
 }
@@ -112,5 +119,6 @@ func (l *yyLex) emit() []byte {
 }
 
 func (l *yyLex) Error(s string) {
-	log.Printf("parse error: %s", s)
+	fmt.Printf("hawk: %s\n", s)
+	os.Exit(1)
 }

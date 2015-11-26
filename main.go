@@ -16,16 +16,20 @@ func main() {
 	source := []byte(os.Args[1])
 	prog := compiler.Compile(source, p)
 
-	in := bufio.NewReader(os.Stdin)
-	for {
-		line, err := in.ReadBytes('\n')
-		if err == io.EOF {
-			return
+	prog.Begin()
+	if prog.AnyPatternActions() {
+		in := bufio.NewReader(os.Stdin)
+		for {
+			line, err := in.ReadBytes('\n')
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Fatalf("ReadBytes: %s", err)
+			}
+			p.SetFields(strings.Fields(string(line)))
+			prog.Exec()
 		}
-		if err != nil {
-			log.Fatalf("ReadBytes: %s", err)
-		}
-		p.SetFields(strings.Fields(string(line)))
-		prog.Exec()
+		prog.End()
 	}
 }

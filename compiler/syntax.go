@@ -9,7 +9,25 @@ import (
 )
 
 type Tree struct {
-	pActions []PatternAction
+	begin    []Stmt
+	pActions []Stmt
+	end      []Stmt
+}
+
+func (t Tree) Begin() {
+	for _, a := range t.begin {
+		a.Exec()
+	}
+}
+
+func (t Tree) End() {
+	for _, a := range t.end {
+		a.Exec()
+	}
+}
+
+func (t Tree) AnyPatternActions() bool {
+	return len(t.pActions) > 0 || len(t.end) > 0
 }
 
 func (t Tree) Exec() {
@@ -18,9 +36,17 @@ func (t Tree) Exec() {
 	}
 }
 
+type BeginAction struct {
+	Stmt
+}
+
+type EndAction struct {
+	Stmt
+}
+
 type PatternAction struct {
 	pattern Expr
-	action  BlockStmt
+	action  Stmt
 }
 
 func (p PatternAction) Exec() {

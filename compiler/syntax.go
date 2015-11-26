@@ -12,6 +12,12 @@ type Tree struct {
 	begin    []Stmt
 	pActions []Stmt
 	end      []Stmt
+
+	vars map[string]Value
+}
+
+func NewTree() *Tree {
+	return &Tree{vars: make(map[string]Value)}
 }
 
 func (t Tree) Begin() {
@@ -73,6 +79,16 @@ type ExprStmt struct {
 	expr Expr
 }
 
+type AssignStmt struct {
+	tree *Tree
+	name string
+	expr Expr
+}
+
+func (a AssignStmt) Exec() {
+	a.tree.vars[a.name] = a.expr.Val()
+}
+
 func (e ExprStmt) Exec() {
 	e.expr.Val()
 }
@@ -99,6 +115,15 @@ func (c CallExpr) Val() Value {
 		log.Fatalf("unknown func %s", c.fun)
 	}
 	return NewBoolValue(false)
+}
+
+type Ident struct {
+	tree *Tree
+	name string
+}
+
+func (i Ident) Val() Value {
+	return i.tree.vars[i.name]
 }
 
 type Col struct {

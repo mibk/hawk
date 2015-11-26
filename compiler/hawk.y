@@ -41,7 +41,6 @@ var (
 top:
 	pactionlist
 	{
-		ast = &Tree{}
 		for i := 0; i < len($1); {
 			pa := $1[i]
 			switch pa.(type) {
@@ -116,6 +115,10 @@ stmt:
 	{
 		$$ = ExprStmt{$1}
 	}
+|	IDENT '=' expr
+	{
+		$$ = AssignStmt{ast, $1, $3}
+	}
 
 
 
@@ -158,6 +161,10 @@ uexpr:
 	{
 		$$ = Lit($1)
 	}
+|	IDENT
+	{
+		$$ = Ident{ast, $1}
+	}
 |	IDENT '(' exprlist ')'
 	{
 		$$ = CallExpr{parser.Writer, $1, $3}
@@ -179,6 +186,7 @@ exprlist:
 %%
 
 func Compile(src []byte, p *parse.Parser) *Tree {
+	ast = NewTree()
 	parser = p
 	defaultAction = BlockStmt{[]Stmt{
 		ExprStmt{CallExpr{parser.Writer, "print", []Expr{Col{parser, Lit(0)}}}},

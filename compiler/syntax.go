@@ -79,6 +79,10 @@ type ExprStmt struct {
 	expr Expr
 }
 
+func (e ExprStmt) Exec() {
+	e.expr.Val()
+}
+
 type AssignStmt struct {
 	tree *Tree
 	name string
@@ -89,8 +93,18 @@ func (a AssignStmt) Exec() {
 	a.tree.vars[a.name] = a.expr.Val()
 }
 
-func (e ExprStmt) Exec() {
-	e.expr.Val()
+type IfStmt struct {
+	expr     Expr
+	stmt     Stmt
+	elseStmt Stmt
+}
+
+func (i IfStmt) Exec() {
+	if i.expr.Val().Cmp(NewBoolValue(true)) == 0 {
+		i.stmt.Exec()
+	} else if i.elseStmt != nil {
+		i.elseStmt.Exec()
+	}
 }
 
 type Expr interface {

@@ -95,6 +95,10 @@ func (l *yyLex) lexIdent(yylval *yySymType) int {
 		return BEGIN
 	} else if sym == "END" {
 		return END
+	} else if sym == "if" {
+		return IF
+	} else if sym == "else" {
+		return ELSE
 	}
 	yylval.sym = sym
 	return IDENT

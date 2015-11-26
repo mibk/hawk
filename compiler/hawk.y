@@ -25,12 +25,13 @@ var (
 
 %type <expr>     expr uexpr
 %type <exprlist> exprlist
-%type <stmt>     stmt paction
+%type <stmt>     stmt paction ifstmt else if_or_block
 %type <stmtlist> stmtlist blockstmt pactionlist
 
 %token <num> NUM
 %token <sym> IDENT
 %token       BEGIN END
+%token       IF ELSE
 
 %left EQ NE LE GE LT GT
 %left ADD SUB
@@ -120,6 +121,35 @@ stmt:
 |	IDENT '=' expr
 	{
 		$$ = AssignStmt{ast, $1, $3}
+	}
+|	ifstmt
+	{
+		$$ = $1
+	}
+
+ifstmt:
+	IF expr blockstmt else
+	{
+		$$ = IfStmt{$2, BlockStmt{$3}, $4}
+	}
+
+else:
+	{
+		$$ = nil
+	}
+|	ELSE if_or_block
+	{
+		$$ = $2
+	}
+
+if_or_block:
+	ifstmt
+	{
+		$$ = $1
+	}
+|	blockstmt
+	{
+		$$ = BlockStmt{$1}
 	}
 
 

@@ -93,7 +93,7 @@ paction:
 	}
 
 blockstmt:
-	'{' stmtlist '}'
+	'{' stmtlist ';' '}'
 	{
 		$$ = $2
 	}

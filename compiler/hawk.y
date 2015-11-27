@@ -29,7 +29,7 @@ var (
 %type <stmtlist> stmtlist blockstmt pactionlist
 
 %token <num> NUM
-%token <sym> IDENT
+%token <sym> IDENT STRING
 %token       BEGIN END
 %token       IF ELSE
 %token       FOR
@@ -237,6 +237,10 @@ uexpr:
 	NUM
 	{
 		$$ = Lit($1)
+	}
+|	STRING
+	{
+		$$ = StringLit($1)
 	}
 |	'+' uexpr
 	{

@@ -245,3 +245,9 @@ type Lit int
 func (l Lit) Val() Value {
 	return NewNumberValue(float64(l))
 }
+
+type StringLit string
+
+func (s StringLit) Val() Value {
+	return NewStringValue(string(s))
+}

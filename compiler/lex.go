@@ -78,6 +78,8 @@ func (l *yyLex) Lex(yylval *yySymType) int {
 				l.emit()
 				continue // ignore block comment
 			}
+		case '"':
+			return l.lexString(yylval)
 		case ' ', '\t', '\n', '\r':
 			l.emit() // ignore whitespace
 			continue
@@ -116,6 +118,14 @@ func (l *yyLex) lexIdent(yylval *yySymType) int {
 	}
 	yylval.sym = sym
 	return IDENT
+}
+
+func (l *yyLex) lexString(yylval *yySymType) int {
+	for l.next() != '"' {
+	}
+	s := l.emit()
+	yylval.sym = string(s[1 : len(s)-1]) // trim ""
+	return STRING
 }
 
 func (l *yyLex) next() rune {

@@ -61,10 +61,25 @@ func (l *yyLex) Lex(yylval *yySymType) int {
 			}
 			l.emit()
 			return GT
-		case '+', '-', '*', '/':
+		case '+', '-', '*':
+		case '/':
+			if l.peek() == '/' {
+				l.next()
+				for l.next() != '\n' {
+				}
+				l.backup()
+				l.emit() // ignore oneline comment
+				continue
+			} else if l.peek() == '*' {
+				l.next()
+				for l.next() != '*' && l.peek() != '/' {
+				}
+				l.next()
+				l.emit()
+				continue // ignore block comment
+			}
 		case ' ', '\t', '\n', '\r':
-			// ignore whitespace
-			l.emit()
+			l.emit() // ignore whitespace
 			continue
 		default:
 			l.Error(fmt.Sprintf("unrecognized character %q", c))

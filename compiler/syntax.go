@@ -56,7 +56,7 @@ type PatternAction struct {
 }
 
 func (p PatternAction) Exec() {
-	if p.pattern.Val().Cmp(NewBoolValue(true)) == 0 {
+	if p.pattern == nil || p.pattern.Val().Cmp(NewBoolValue(true)) == 0 {
 		p.action.Exec()
 	}
 }

@@ -74,17 +74,13 @@ pactionlist:
 	}
 
 paction:
-	expr blockstmt
+	oexpr blockstmt
 	{
 		$$ = PatternAction{$1, BlockStmt{$2}}
 	}
 |	expr
 	{
 		$$ = PatternAction{$1, defaultAction}
-	}
-|	blockstmt
-	{
-		$$ = PatternAction{Lit(1), BlockStmt{$1}}
 	}
 |	BEGIN blockstmt
 	{

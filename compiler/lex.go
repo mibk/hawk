@@ -111,6 +111,8 @@ func (l *yyLex) lexIdent(yylval *yySymType) int {
 		return IF
 	} else if sym == "else" {
 		return ELSE
+	} else if sym == "for" {
+		return FOR
 	}
 	yylval.sym = sym
 	return IDENT

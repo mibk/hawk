@@ -107,6 +107,25 @@ func (i IfStmt) Exec() {
 	}
 }
 
+type ForStmt struct {
+	init Stmt
+	cond Expr
+	step Stmt
+	body Stmt
+}
+
+func (f ForStmt) Exec() {
+	if f.init != nil {
+		f.init.Exec()
+	}
+	for f.cond == nil || f.cond.Val().Cmp(NewBoolValue(true)) == 0 {
+		f.body.Exec()
+		if f.step != nil {
+			f.step.Exec()
+		}
+	}
+}
+
 type Expr interface {
 	Val() Value
 }

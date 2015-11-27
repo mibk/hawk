@@ -23,15 +23,16 @@ var (
 	stmtlist []Stmt
 }
 
-%type <expr>     expr uexpr
+%type <expr>     expr oexpr uexpr
 %type <exprlist> exprlist
-%type <stmt>     stmt paction ifstmt else if_or_block
+%type <stmt>     stmt ostmt paction ifstmt else if_or_block forstmt
 %type <stmtlist> stmtlist blockstmt pactionlist
 
 %token <num> NUM
 %token <sym> IDENT
 %token       BEGIN END
 %token       IF ELSE
+%token       FOR
 
 %left EQ NE LE GE LT GT
 %left '+' '-'
@@ -126,6 +127,19 @@ stmt:
 	{
 		$$ = $1
 	}
+|	forstmt
+	{
+		$$ = $1
+	}
+
+ostmt:
+	{
+		$$ = nil
+	}
+|	stmt
+	{
+		$$ = $1
+	}
 
 ifstmt:
 	IF expr blockstmt else
@@ -152,6 +166,15 @@ if_or_block:
 		$$ = BlockStmt{$1}
 	}
 
+forstmt:
+	FOR ostmt ';' oexpr ';' ostmt blockstmt
+	{
+		$$ = ForStmt{$2, $4, $6, BlockStmt{$7}}
+	}
+|	FOR oexpr blockstmt
+	{
+		$$ = ForStmt{nil, $2, nil, BlockStmt{$3}}
+	}
 
 
 expr:
@@ -202,6 +225,15 @@ expr:
 |	expr '/' expr
 	{
 		$$ = BinaryExpr{DIV, $1, $3}
+	}
+
+oexpr:
+	{
+		$$ = nil
+	}
+|	expr
+	{
+		$$ = $1
 	}
 
 

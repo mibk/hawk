@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -12,6 +13,14 @@ import (
 )
 
 func main() {
+	if len(os.Args) < 2 {
+		fmt.Println(`usage:
+	hawk <program>
+
+It is possible to write the program in a separate file and then call:
+	xargs -0 -a <program-file> hawk`)
+		os.Exit(1)
+	}
 	p := parse.NewParser(os.Stdout)
 	source := []byte(os.Args[1])
 	prog := compiler.Compile(source, p)

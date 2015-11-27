@@ -34,8 +34,8 @@ var (
 %token       IF ELSE
 
 %left EQ NE LE GE LT GT
-%left ADD SUB
-%left MUL DIV
+%left '+' '-'
+%left '*' '/'
 
 %start top
 
@@ -187,19 +187,19 @@ expr:
 	{
 		$$ = BinaryExpr{GT, $1, $3}
 	}
-|	expr ADD expr
+|	expr '+' expr
 	{
 		$$ = BinaryExpr{ADD, $1, $3}
 	}
-|	expr SUB expr
+|	expr '-' expr
 	{
 		$$ = BinaryExpr{SUB, $1, $3}
 	}
-|	expr MUL expr
+|	expr '*' expr
 	{
 		$$ = BinaryExpr{MUL, $1, $3}
 	}
-|	expr DIV expr
+|	expr '/' expr
 	{
 		$$ = BinaryExpr{DIV, $1, $3}
 	}
@@ -210,11 +210,11 @@ uexpr:
 	{
 		$$ = Lit($1)
 	}
-|	ADD uexpr
+|	'+' uexpr
 	{
 		$$ = $2
 	}
-|	SUB uexpr
+|	'-' uexpr
 	{
 		$$ = UnaryExpr{SUB, $2}
 	}

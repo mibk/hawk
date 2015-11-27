@@ -5,7 +5,6 @@ package compiler
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"unicode"
@@ -34,46 +33,44 @@ func (l *yyLex) Lex(yylval *yySymType) int {
 			l.emit()
 			return eof
 		case ';', '{', '}', ',', '(', ')', '$':
-			l.emit()
-			return int(c)
 		case '=':
 			if l.peek() == '=' {
 				l.next()
+				l.emit()
 				return EQ
 			}
-			return int(c)
 		case '!':
 			if l.peek() == '=' {
 				l.next()
+				l.emit()
 				return NE
 			}
-			return int(c)
 		case '<':
 			if l.peek() == '=' {
 				l.next()
+				l.emit()
 				return LE
 			}
+			l.emit()
 			return LT
 		case '>':
 			if l.peek() == '=' {
 				l.next()
+				l.emit()
 				return GE
 			}
+			l.emit()
 			return GT
-		case '+':
-			return ADD
-		case '-':
-			return SUB
-		case '*':
-			return MUL
-		case '/':
-			return DIV
+		case '+', '-', '*', '/':
 		case ' ', '\t', '\n', '\r':
 			// ignore whitespace
 			l.emit()
+			continue
 		default:
-			log.Printf("unrecognized character %q", c)
+			l.Error(fmt.Sprintf("unrecognized character %q", c))
 		}
+		l.emit()
+		return int(c)
 	}
 }
 

@@ -156,6 +156,13 @@ type BinaryExpr struct {
 	right Expr
 }
 
+const (
+	ADD = iota
+	SUB
+	MUL
+	DIV
+)
+
 func (e BinaryExpr) Val() Value {
 	switch e.typ {
 	case ADD, SUB, MUL, DIV:

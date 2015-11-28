@@ -24,12 +24,12 @@ var (
 }
 
 %type <expr>     expr oexpr uexpr
-%type <exprlist> exprlist
+%type <exprlist> exprlist  oexprlist
 %type <stmt>     stmt ostmt paction ifstmt else if_or_block forstmt
 %type <stmtlist> stmtlist blockstmt pactionlist
 
 %token <num> NUM
-%token <sym> IDENT STRING
+%token <sym> IDENT STRING PRINT
 %token       BEGIN END
 %token       IF ELSE
 %token       FOR
@@ -126,6 +126,10 @@ stmt:
 |	forstmt
 	{
 		$$ = $1
+	}
+|	PRINT exprlist
+	{
+		$$ = CallStmt{parser.Writer, $1, $2}
 	}
 
 ostmt:
@@ -258,22 +262,31 @@ uexpr:
 	{
 		$$ = Ident{ast, $1}
 	}
-|	IDENT '(' exprlist ')'
+|	IDENT '(' oexprlist ')'
 	{
 		$$ = CallExpr{parser.Writer, $1, $3}
 	}
+	IDENT
+	{
+	}
 
 exprlist:
-	{
-		$$ = nil
-	}
-|	expr
+	expr
 	{
 		$$ = []Expr{$1}
 	}
 |	exprlist ',' expr
 	{
 		$$ = append($1, $3)
+	}
+
+oexprlist:
+	{
+		$$ = nil
+	}
+|	exprlist
+	{
+		$$ = $1
 	}
 
 %%

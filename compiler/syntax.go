@@ -126,6 +126,13 @@ func (f ForStmt) Exec() {
 	}
 }
 
+type CallStmt CallExpr
+
+func (c CallStmt) Exec() {
+	CallExpr(c).Val()
+
+}
+
 type Expr interface {
 	Val() Value
 }

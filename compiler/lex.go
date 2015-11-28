@@ -117,6 +117,10 @@ func (l *yyLex) lexIdent(yylval *yySymType) int {
 		return FOR
 	}
 	yylval.sym = sym
+	switch sym {
+	case "print":
+		return PRINT
+	}
 	return IDENT
 }
 

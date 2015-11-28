@@ -96,8 +96,18 @@ func (l *yyLex) Lex(yylval *yySymType) int {
 			l.emit() // ignore whitespace
 			continue
 		default:
+			if c == '&' && l.peek() == '&' {
+				l.next()
+				l.emit()
+				return LAND
+			} else if c == '|' && l.peek() == '|' {
+				l.next()
+				l.emit()
+				return LOR
+			}
 			l.Error(fmt.Sprintf("unrecognized character %q", c))
 		}
+
 		l.emit()
 		return int(c)
 	}

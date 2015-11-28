@@ -67,6 +67,10 @@ func (v Value) Number() Value {
 func (v Value) Float64() float64 { return v.Number().number }
 func (v Value) Int() int         { return int(v.Number().number) }
 
+func (v Value) Bool() bool {
+	return v.Cmp(NewBool(true)) == 0
+}
+
 func (v Value) String() string {
 	switch v.typ {
 	case String:

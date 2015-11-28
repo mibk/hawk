@@ -57,7 +57,8 @@ type PatternAction struct {
 }
 
 func (p PatternAction) Exec() {
-	if p.pattern == nil || p.pattern.Eval().Cmp(value.NewBool(true)) == 0 {
+
+	if p.pattern == nil || p.pattern.Eval().Bool() {
 		p.action.Exec()
 	}
 }
@@ -101,7 +102,7 @@ type IfStmt struct {
 }
 
 func (i IfStmt) Exec() {
-	if i.expr.Eval().Cmp(value.NewBool(true)) == 0 {
+	if i.expr.Eval().Bool() {
 		i.stmt.Exec()
 	} else if i.elseStmt != nil {
 		i.elseStmt.Exec()
@@ -119,7 +120,7 @@ func (f ForStmt) Exec() {
 	if f.init != nil {
 		f.init.Exec()
 	}
-	for f.cond == nil || f.cond.Eval().Cmp(value.NewBool(true)) == 0 {
+	for f.cond == nil || f.cond.Eval().Bool() {
 		f.body.Exec()
 		if f.step != nil {
 			f.step.Exec()
@@ -209,6 +210,20 @@ func (e BinaryExpr) Eval() value.Value {
 			panic("unreachable")
 		}
 		return value.NewNumber(f)
+	}
+	switch e.typ {
+	case LOR, LAND:
+		lval := e.left.Eval()
+		if e.typ == LOR {
+			if lval.Bool() {
+				return value.NewBool(true)
+			}
+			return value.NewBool(e.right.Eval().Bool())
+		}
+		if !lval.Bool() {
+			return value.NewBool(false)
+		}
+		return value.NewBool(e.right.Eval().Bool())
 	}
 	cmp := e.left.Eval().Cmp(e.right.Eval())
 	var b bool

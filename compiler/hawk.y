@@ -35,6 +35,8 @@ var (
 %token       FOR
 %token       INC DEC
 
+%left LOR
+%left LAND
 %left EQ NE LE GE LT GT
 %left '+' '-'
 %left '*' '/'
@@ -196,6 +198,14 @@ expr:
 |	'$' uexpr
 	{
 		$$ = Col{parser, $2}
+	}
+|	expr LOR expr
+	{
+		$$ = BinaryExpr{LOR, $1, $3}
+	}
+|	expr LAND expr
+	{
+		$$ = BinaryExpr{LAND, $1, $3}
 	}
 |	expr EQ expr
 	{

@@ -39,7 +39,7 @@ var (
 %left LAND
 %left EQ NE LE GE LT GT
 %left '+' '-'
-%left '*' '/'
+%left '*' '/' '%'
 
 %start top
 
@@ -246,6 +246,10 @@ expr:
 |	expr '/' expr
 	{
 		$$ = BinaryExpr{DIV, $1, $3}
+	}
+|	expr '%' expr
+	{
+		$$ = BinaryExpr{MOD, $1, $3}
 	}
 
 oexpr:

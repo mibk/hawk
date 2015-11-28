@@ -90,6 +90,7 @@ func (l *yyLex) Lex(yylval *yySymType) int {
 				l.emit()
 				continue // ignore block comment
 			}
+		case '%':
 		case '"':
 			return l.lexString(yylval)
 		case ' ', '\t', '\n', '\r':

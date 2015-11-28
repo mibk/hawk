@@ -189,11 +189,12 @@ const (
 	SUB
 	MUL
 	DIV
+	MOD
 )
 
 func (e BinaryExpr) Eval() value.Value {
 	switch e.typ {
-	case ADD, SUB, MUL, DIV:
+	case ADD, SUB, MUL, DIV, MOD:
 		l := e.left.Eval().Float64()
 		r := e.right.Eval().Float64()
 		var f float64
@@ -206,6 +207,8 @@ func (e BinaryExpr) Eval() value.Value {
 			f = l * r
 		case DIV:
 			f = l / r
+		case MOD:
+			f = float64(int(l) % int(r))
 		default:
 			panic("unreachable")
 		}
@@ -240,9 +243,6 @@ func (e BinaryExpr) Eval() value.Value {
 		b = cmp == 1
 	case GE:
 		b = cmp >= 0
-	case SUB:
-	case MUL:
-	case DIV:
 	default:
 		panic("unreachable")
 	}

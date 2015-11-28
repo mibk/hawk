@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/mibk/hawk/parse"
+	"github.com/mibk/hawk/value"
 )
 
 type Tree struct {
@@ -13,11 +14,11 @@ type Tree struct {
 	pActions []Stmt
 	end      []Stmt
 
-	vars map[string]Value
+	vars map[string]value.Value
 }
 
 func NewTree() *Tree {
-	return &Tree{vars: make(map[string]Value)}
+	return &Tree{vars: make(map[string]value.Value)}
 }
 
 func (t Tree) Begin() {
@@ -56,7 +57,7 @@ type PatternAction struct {
 }
 
 func (p PatternAction) Exec() {
-	if p.pattern == nil || p.pattern.Eval().Cmp(NewBoolValue(true)) == 0 {
+	if p.pattern == nil || p.pattern.Eval().Cmp(value.NewBool(true)) == 0 {
 		p.action.Exec()
 	}
 }
@@ -100,7 +101,7 @@ type IfStmt struct {
 }
 
 func (i IfStmt) Exec() {
-	if i.expr.Eval().Cmp(NewBoolValue(true)) == 0 {
+	if i.expr.Eval().Cmp(value.NewBool(true)) == 0 {
 		i.stmt.Exec()
 	} else if i.elseStmt != nil {
 		i.elseStmt.Exec()
@@ -118,7 +119,7 @@ func (f ForStmt) Exec() {
 	if f.init != nil {
 		f.init.Exec()
 	}
-	for f.cond == nil || f.cond.Eval().Cmp(NewBoolValue(true)) == 0 {
+	for f.cond == nil || f.cond.Eval().Cmp(value.NewBool(true)) == 0 {
 		f.body.Exec()
 		if f.step != nil {
 			f.step.Exec()
@@ -134,7 +135,7 @@ func (c CallStmt) Exec() {
 }
 
 type Expr interface {
-	Eval() Value
+	Eval() value.Value
 }
 
 type CallExpr struct {
@@ -143,7 +144,7 @@ type CallExpr struct {
 	args   []Expr
 }
 
-func (c CallExpr) Eval() Value {
+func (c CallExpr) Eval() value.Value {
 	switch c.fun {
 	case "print":
 		var vals []interface{}
@@ -154,7 +155,7 @@ func (c CallExpr) Eval() Value {
 	default:
 		log.Fatalf("unknown func %s", c.fun)
 	}
-	return NewBoolValue(false)
+	return value.NewBool(false)
 }
 
 type Ident struct {
@@ -162,7 +163,7 @@ type Ident struct {
 	name string
 }
 
-func (i Ident) Eval() Value {
+func (i Ident) Eval() value.Value {
 	return i.tree.vars[i.name]
 }
 
@@ -171,9 +172,9 @@ type Col struct {
 	Num Expr
 }
 
-func (c Col) Eval() Value {
+func (c Col) Eval() value.Value {
 	n := c.Num.Eval().Int()
-	return NewStringValue(c.p.Field(n))
+	return value.NewString(c.p.Field(n))
 }
 
 type BinaryExpr struct {
@@ -189,7 +190,7 @@ const (
 	DIV
 )
 
-func (e BinaryExpr) Eval() Value {
+func (e BinaryExpr) Eval() value.Value {
 	switch e.typ {
 	case ADD, SUB, MUL, DIV:
 		l := e.left.Eval().Float64()
@@ -207,7 +208,7 @@ func (e BinaryExpr) Eval() Value {
 		default:
 			panic("unreachable")
 		}
-		return NewNumberValue(f)
+		return value.NewNumber(f)
 	}
 	cmp := e.left.Eval().Cmp(e.right.Eval())
 	var b bool
@@ -230,7 +231,7 @@ func (e BinaryExpr) Eval() Value {
 	default:
 		panic("unreachable")
 	}
-	return NewBoolValue(b)
+	return value.NewBool(b)
 }
 
 type UnaryExpr struct {
@@ -238,10 +239,10 @@ type UnaryExpr struct {
 	expr Expr
 }
 
-func (e UnaryExpr) Eval() Value {
+func (e UnaryExpr) Eval() value.Value {
 	switch e.typ {
 	case SUB:
-		return NewNumberValue(-e.expr.Eval().Float64())
+		return value.NewNumber(-e.expr.Eval().Float64())
 	default:
 		panic("unreachable")
 	}
@@ -249,12 +250,12 @@ func (e UnaryExpr) Eval() Value {
 
 type Lit int
 
-func (l Lit) Eval() Value {
-	return NewNumberValue(float64(l))
+func (l Lit) Eval() value.Value {
+	return value.NewNumber(float64(l))
 }
 
 type StringLit string
 
-func (s StringLit) Eval() Value {
-	return NewStringValue(string(s))
+func (s StringLit) Eval() value.Value {
+	return value.NewString(string(s))
 }

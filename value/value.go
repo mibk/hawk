@@ -1,4 +1,4 @@
-package compiler
+package value
 
 import (
 	"strconv"
@@ -17,15 +17,15 @@ type Value struct {
 	number float64
 }
 
-func NewNumberValue(f float64) Value {
+func NewNumber(f float64) Value {
 	return Value{Number, "", f}
 }
 
-func NewStringValue(s string) Value {
+func NewString(s string) Value {
 	return Value{String, s, 0}
 }
 
-func NewBoolValue(b bool) Value {
+func NewBool(b bool) Value {
 	n := .0
 	if b {
 		n = 1

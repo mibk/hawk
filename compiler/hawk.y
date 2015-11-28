@@ -33,6 +33,7 @@ var (
 %token       BEGIN END
 %token       IF ELSE
 %token       FOR
+%token       INC DEC
 
 %left EQ NE LE GE LT GT
 %left '+' '-'
@@ -118,6 +119,16 @@ stmt:
 |	IDENT '=' expr
 	{
 		$$ = AssignStmt{ast, $1, $3}
+	}
+	// TODO: should rather be 'uexpr INC' and catch unwanted usage during
+	//	semantic analysis, but for now...
+|	IDENT INC
+	{
+		$$ = AssignStmt{ast, $1, BinaryExpr{ADD, Ident{ast, $1}, Lit(1)}}
+	}
+|	IDENT DEC
+	{
+		$$ = AssignStmt{ast, $1, BinaryExpr{SUB, Ident{ast, $1}, Lit(1)}}
 	}
 |	ifstmt
 	{

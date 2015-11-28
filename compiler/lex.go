@@ -61,7 +61,19 @@ func (l *yyLex) Lex(yylval *yySymType) int {
 			}
 			l.emit()
 			return GT
-		case '+', '-', '*':
+		case '+':
+			if l.peek() == '+' {
+				l.next()
+				l.emit()
+				return INC
+			}
+		case '-':
+			if l.peek() == '-' {
+				l.next()
+				l.emit()
+				return DEC
+			}
+		case '*':
 		case '/':
 			if l.peek() == '/' {
 				l.next()

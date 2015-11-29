@@ -20,6 +20,12 @@ type yyLex struct {
 
 const eof = 0
 
+var lexlineno = 1
+
+func init() {
+	yyErrorVerbose = true
+}
+
 func (l *yyLex) Lex(yylval *yySymType) int {
 	for {
 		c := l.next()
@@ -84,7 +90,7 @@ func (l *yyLex) Lex(yylval *yySymType) int {
 				continue
 			} else if l.peek() == '*' {
 				l.next()
-				for l.next() != '*' && l.peek() != '/' {
+				for !(l.next() == '*' && l.peek() == '/') {
 				}
 				l.next()
 				l.emit()
@@ -162,6 +168,9 @@ func (l *yyLex) next() rune {
 	r, w := utf8.DecodeRune(l.src[l.pos:])
 	l.width = w
 	l.pos += l.width
+	if r == '\n' {
+		lexlineno++
+	}
 	return r
 }
 
@@ -173,6 +182,10 @@ func (l *yyLex) peek() rune {
 
 func (l *yyLex) backup() {
 	l.pos -= l.width
+	r, _ := utf8.DecodeRune(l.src[l.pos : l.pos+l.width])
+	if r == '\n' {
+		lexlineno--
+	}
 }
 
 func (l *yyLex) emit() []byte {
@@ -182,6 +195,6 @@ func (l *yyLex) emit() []byte {
 }
 
 func (l *yyLex) Error(s string) {
-	fmt.Printf("hawk: %s\n", s)
+	fmt.Printf("hawk: line:%d: %s\n", lexlineno, s)
 	os.Exit(1)
 }

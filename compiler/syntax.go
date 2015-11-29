@@ -56,33 +56,48 @@ type PatternAction struct {
 	action  Stmt
 }
 
-func (p PatternAction) Exec() {
-
+func (p PatternAction) Exec() Status {
 	if p.pattern == nil || p.pattern.Eval().Bool() {
 		p.action.Exec()
 	}
+	return StatusNone
 }
 
-type BlockStmt struct {
-	stmts []Stmt
-}
+type Status int
 
-func (b BlockStmt) Exec() {
-	for _, stmt := range b.stmts {
-		stmt.Exec()
-	}
-}
+const (
+	StatusNone Status = iota
+	StatusBreak
+	StatusContinue
+)
 
 type Stmt interface {
-	Exec()
+	Exec() Status
 }
 
 type ExprStmt struct {
 	expr Expr
 }
 
-func (e ExprStmt) Exec() {
+func (e ExprStmt) Exec() Status {
 	e.expr.Eval()
+	return StatusNone
+}
+
+type BlockStmt struct {
+	stmts []Stmt
+}
+
+func (b BlockStmt) Exec() Status {
+	for _, stmt := range b.stmts {
+		switch stmt.Exec() {
+		case StatusBreak:
+			return StatusBreak
+		case StatusContinue:
+			return StatusNone
+		}
+	}
+	return StatusNone
 }
 
 type AssignStmt struct {
@@ -91,8 +106,9 @@ type AssignStmt struct {
 	expr Expr
 }
 
-func (a AssignStmt) Exec() {
+func (a AssignStmt) Exec() Status {
 	a.tree.vars[a.name] = a.expr.Eval()
+	return StatusNone
 }
 
 type IfStmt struct {
@@ -101,12 +117,13 @@ type IfStmt struct {
 	elseStmt Stmt
 }
 
-func (i IfStmt) Exec() {
+func (i IfStmt) Exec() Status {
 	if i.expr.Eval().Bool() {
-		i.stmt.Exec()
+		return i.stmt.Exec()
 	} else if i.elseStmt != nil {
-		i.elseStmt.Exec()
+		return i.elseStmt.Exec()
 	}
+	return StatusNone
 }
 
 type ForStmt struct {
@@ -116,23 +133,34 @@ type ForStmt struct {
 	body Stmt
 }
 
-func (f ForStmt) Exec() {
+func (f ForStmt) Exec() Status {
 	if f.init != nil {
 		f.init.Exec()
 	}
 	for f.cond == nil || f.cond.Eval().Bool() {
-		f.body.Exec()
+		if f.body.Exec() == StatusBreak {
+			break
+		}
 		if f.step != nil {
 			f.step.Exec()
 		}
 	}
+	return StatusNone
+}
+
+type StatusStmt struct {
+	status Status
+}
+
+func (s StatusStmt) Exec() Status {
+	return s.status
 }
 
 type CallStmt CallExpr
 
-func (c CallStmt) Exec() {
+func (c CallStmt) Exec() Status {
 	CallExpr(c).Eval()
-
+	return StatusNone
 }
 
 type Expr interface {

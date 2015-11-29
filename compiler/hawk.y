@@ -32,7 +32,7 @@ var (
 %token <sym> IDENT STRING PRINT
 %token       BEGIN END
 %token       IF ELSE
-%token       FOR
+%token       FOR BREAK CONTINUE
 %token       INC DEC
 
 %left LOR
@@ -139,6 +139,14 @@ stmt:
 |	forstmt
 	{
 		$$ = $1
+	}
+|	BREAK
+	{
+		$$ = StatusStmt{StatusBreak}
+	}
+|	CONTINUE
+	{
+		$$ = StatusStmt{StatusContinue}
 	}
 |	PRINT exprlist
 	{

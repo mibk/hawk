@@ -134,16 +134,21 @@ func (l *yyLex) lexIdent(yylval *yySymType) int {
 	}
 	l.backup()
 	sym := string(l.emit())
-	if sym == "BEGIN" {
+	switch sym {
+	case "BEGIN":
 		return BEGIN
-	} else if sym == "END" {
+	case "END":
 		return END
-	} else if sym == "if" {
+	case "if":
 		return IF
-	} else if sym == "else" {
+	case "else":
 		return ELSE
-	} else if sym == "for" {
+	case "for":
 		return FOR
+	case "break":
+		return BREAK
+	case "continue":
+		return CONTINUE
 	}
 	yylval.sym = sym
 	switch sym {

@@ -287,6 +287,10 @@ uexpr:
 	{
 		$$ = UnaryExpr{SUB, $2}
 	}
+|	'!' uexpr
+	{
+		$$ = UnaryExpr{NOT, $2}
+	}
 |	'(' expr ')'
 	{
 		$$ = $2

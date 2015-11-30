@@ -218,6 +218,8 @@ const (
 	MUL
 	DIV
 	MOD
+
+	NOT
 )
 
 func (e BinaryExpr) Eval() value.Value {
@@ -286,6 +288,8 @@ func (e UnaryExpr) Eval() value.Value {
 	switch e.typ {
 	case SUB:
 		return value.NewNumber(-e.expr.Eval().Float64())
+	case NOT:
+		return value.NewBool(!e.expr.Eval().Bool())
 	default:
 		panic("unreachable")
 	}

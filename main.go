@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -12,17 +13,14 @@ import (
 	"github.com/mibk/hawk/parse"
 )
 
-func main() {
-	if len(os.Args) < 2 {
-		fmt.Println(`usage:
-	hawk <program>
+var (
+	file = flag.String("f", "", "read program from `file`")
+)
 
-It is possible to write the program in a separate file and then call:
-	xargs -0 -a <program-file> hawk`)
-		os.Exit(1)
-	}
+func main() {
+	flag.Parse()
 	p := parse.NewParser(os.Stdout)
-	prog := compiler.Compile(strings.NewReader(os.Args[1]), p)
+	prog := compile(p)
 
 	prog.Begin()
 	if prog.AnyPatternActions() {
@@ -40,4 +38,26 @@ It is possible to write the program in a separate file and then call:
 		}
 		prog.End()
 	}
+}
+
+func compile(p *parse.Parser) *compiler.Tree {
+	var srcr io.Reader
+	if *file != "" {
+		f, err := os.Open(*file)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "hawk: %v\n", err)
+		}
+		defer f.Close()
+		srcr = f
+	} else if len(os.Args) < 2 {
+		fmt.Println(`usage:
+	hawk <program>
+
+It is possible to write the program in a separate file and then call:
+	xargs -0 -a <program-file> hawk`)
+		os.Exit(1)
+	} else {
+		srcr = strings.NewReader(os.Args[1])
+	}
+	return compiler.Compile(srcr, p)
 }

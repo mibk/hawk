@@ -2,6 +2,10 @@
 package compiler
 
 import (
+	"bufio"
+	"bytes"
+	"io"
+
 	"github.com/mibk/hawk/parse"
 )
 
@@ -328,12 +332,12 @@ oexprlist:
 
 %%
 
-func Compile(src []byte, p *parse.Parser) *Tree {
+func Compile(r io.Reader, p *parse.Parser) *Tree {
 	ast = NewTree()
 	parser = p
 	defaultAction = BlockStmt{[]Stmt{
 		ExprStmt{CallExpr{parser.Writer, "print", []Expr{Col{parser, Lit(0)}}}},
 	}}
-	yyParse(&yyLex{src: src})
+	yyParse(&yyLex{reader: bufio.NewReader(r), buf: new(bytes.Buffer)})
 	return ast
 }

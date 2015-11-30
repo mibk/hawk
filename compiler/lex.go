@@ -4,18 +4,19 @@ package compiler
 //go:generate yacc -o hawk.go hawk.y
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 	"strconv"
 	"unicode"
-	"unicode/utf8"
 )
 
 type yyLex struct {
-	src   []byte
-	start int
-	pos   int
-	width int
+	reader *bufio.Reader
+	last   rune
+	peeked rune
+	buf    *bytes.Buffer
 }
 
 const eof = 0
@@ -36,47 +37,38 @@ func (l *yyLex) Lex(yylval *yySymType) int {
 		}
 		switch c {
 		case eof:
-			l.emit()
 			return eof
 		case ';', '{', '}', ',', '(', ')', '$':
 		case '=':
 			if l.peek() == '=' {
 				l.next()
-				l.emit()
 				return EQ
 			}
 		case '!':
 			if l.peek() == '=' {
 				l.next()
-				l.emit()
 				return NE
 			}
 		case '<':
 			if l.peek() == '=' {
 				l.next()
-				l.emit()
 				return LE
 			}
-			l.emit()
 			return LT
 		case '>':
 			if l.peek() == '=' {
 				l.next()
-				l.emit()
 				return GE
 			}
-			l.emit()
 			return GT
 		case '+':
 			if l.peek() == '+' {
 				l.next()
-				l.emit()
 				return INC
 			}
 		case '-':
 			if l.peek() == '-' {
 				l.next()
-				l.emit()
 				return DEC
 			}
 		case '*':
@@ -86,54 +78,52 @@ func (l *yyLex) Lex(yylval *yySymType) int {
 				for l.next() != '\n' {
 				}
 				l.backup()
-				l.emit() // ignore oneline comment
-				continue
+				continue // ignore oneline comment
 			} else if l.peek() == '*' {
 				l.next()
 				for !(l.next() == '*' && l.peek() == '/') {
 				}
 				l.next()
-				l.emit()
 				continue // ignore block comment
 			}
 		case '%':
 		case '"':
 			return l.lexString(yylval)
 		case ' ', '\t', '\n', '\r':
-			l.emit() // ignore whitespace
-			continue
+			continue // ignore whitespace
 		default:
 			if c == '&' && l.peek() == '&' {
 				l.next()
-				l.emit()
 				return LAND
 			} else if c == '|' && l.peek() == '|' {
 				l.next()
-				l.emit()
 				return LOR
 			}
 			l.Error(fmt.Sprintf("unrecognized character %q", c))
 		}
-
-		l.emit()
 		return int(c)
 	}
 }
 
 func (l *yyLex) lexNum(yylval *yySymType) int {
+	l.buf.Reset()
+	l.buf.WriteRune(l.last)
 	for unicode.IsDigit(l.next()) {
+		l.buf.WriteRune(l.last)
 	}
 	l.backup()
-	num := l.emit()
-	yylval.num, _ = strconv.Atoi(string(num))
+	yylval.num, _ = strconv.Atoi(l.buf.String())
 	return NUM
 }
 
 func (l *yyLex) lexIdent(yylval *yySymType) int {
+	l.buf.Reset()
+	l.buf.WriteRune(l.last)
 	for unicode.IsLetter(l.next()) {
+		l.buf.WriteRune(l.last)
 	}
 	l.backup()
-	sym := string(l.emit())
+	sym := l.buf.String()
 	switch sym {
 	case "BEGIN":
 		return BEGIN
@@ -159,23 +149,28 @@ func (l *yyLex) lexIdent(yylval *yySymType) int {
 }
 
 func (l *yyLex) lexString(yylval *yySymType) int {
+	l.buf.Reset()
 	for l.next() != '"' {
+		l.buf.WriteRune(l.last)
 	}
-	s := l.emit()
-	yylval.sym = string(s[1 : len(s)-1]) // trim ""
+	yylval.sym = l.buf.String()
 	return STRING
 }
 
 func (l *yyLex) next() rune {
-	if len(l.src) == l.start {
+	if l.peeked != 0 {
+		r := l.peeked
+		l.peeked = 0
+		return r
+	}
+	r, _, err := l.reader.ReadRune()
+	if err != nil {
 		return eof
 	}
-	r, w := utf8.DecodeRune(l.src[l.pos:])
-	l.width = w
-	l.pos += l.width
 	if r == '\n' {
 		lexlineno++
 	}
+	l.last = r
 	return r
 }
 
@@ -186,17 +181,10 @@ func (l *yyLex) peek() rune {
 }
 
 func (l *yyLex) backup() {
-	l.pos -= l.width
-	r, _ := utf8.DecodeRune(l.src[l.pos : l.pos+l.width])
-	if r == '\n' {
+	l.peeked = l.last
+	if l.last == '\n' {
 		lexlineno--
 	}
-}
-
-func (l *yyLex) emit() []byte {
-	tok := l.src[l.start:l.pos]
-	l.start = l.pos
-	return tok
 }
 
 func (l *yyLex) Error(s string) {

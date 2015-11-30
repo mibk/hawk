@@ -22,8 +22,7 @@ It is possible to write the program in a separate file and then call:
 		os.Exit(1)
 	}
 	p := parse.NewParser(os.Stdout)
-	source := []byte(os.Args[1])
-	prog := compiler.Compile(source, p)
+	prog := compiler.Compile(strings.NewReader(os.Args[1]), p)
 
 	prog.Begin()
 	if prog.AnyPatternActions() {

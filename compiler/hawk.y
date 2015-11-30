@@ -39,9 +39,9 @@ var (
 %token       FOR BREAK CONTINUE
 %token       INC DEC
 
-%left LOR
-%left LAND
-%left EQ NE LE GE LT GT
+%left OROR
+%left ANDAND
+%left EQ NE LE GE '<' '>'
 %left '+' '-'
 %left '*' '/' '%'
 
@@ -130,11 +130,11 @@ stmt:
 	//	semantic analysis, but for now...
 |	IDENT INC
 	{
-		$$ = AssignStmt{ast, $1, BinaryExpr{ADD, Ident{ast, $1}, Lit(1)}}
+		$$ = AssignStmt{ast, $1, BinaryExpr{Add, Ident{ast, $1}, Lit(1)}}
 	}
 |	IDENT DEC
 	{
-		$$ = AssignStmt{ast, $1, BinaryExpr{SUB, Ident{ast, $1}, Lit(1)}}
+		$$ = AssignStmt{ast, $1, BinaryExpr{Sub, Ident{ast, $1}, Lit(1)}}
 	}
 |	ifstmt
 	{
@@ -209,59 +209,59 @@ expr:
 	}
 |	'$' uexpr
 	{
-		$$ = Col{parser, $2}
+		$$ = FieldExpr{parser, $2}
 	}
-|	expr LOR expr
+|	expr OROR expr
 	{
-		$$ = BinaryExpr{LOR, $1, $3}
+		$$ = BinaryExpr{OrOr, $1, $3}
 	}
-|	expr LAND expr
+|	expr ANDAND expr
 	{
-		$$ = BinaryExpr{LAND, $1, $3}
+		$$ = BinaryExpr{AndAnd, $1, $3}
 	}
 |	expr EQ expr
 	{
-		$$ = BinaryExpr{EQ, $1, $3}
+		$$ = BinaryExpr{Eq, $1, $3}
 	}
 |	expr NE expr
 	{
-		$$ = BinaryExpr{NE, $1, $3}
+		$$ = BinaryExpr{NotEq, $1, $3}
 	}
 |	expr LE expr
 	{
-		$$ = BinaryExpr{LE, $1, $3}
+		$$ = BinaryExpr{LtEq, $1, $3}
 	}
 |	expr GE expr
 	{
-		$$ = BinaryExpr{GE, $1, $3}
+		$$ = BinaryExpr{GtEq, $1, $3}
 	}
-|	expr LT expr
+|	expr '<' expr
 	{
-		$$ = BinaryExpr{LT, $1, $3}
+		$$ = BinaryExpr{Lt, $1, $3}
 	}
-|	expr GT expr
+|	expr '>' expr
 	{
-		$$ = BinaryExpr{GT, $1, $3}
+		$$ = BinaryExpr{Gt, $1, $3}
 	}
 |	expr '+' expr
 	{
-		$$ = BinaryExpr{ADD, $1, $3}
+		$$ = BinaryExpr{Add, $1, $3}
 	}
 |	expr '-' expr
 	{
-		$$ = BinaryExpr{SUB, $1, $3}
+		$$ = BinaryExpr{Sub, $1, $3}
 	}
 |	expr '*' expr
 	{
-		$$ = BinaryExpr{MUL, $1, $3}
+		$$ = BinaryExpr{Mul, $1, $3}
 	}
 |	expr '/' expr
 	{
-		$$ = BinaryExpr{DIV, $1, $3}
+		$$ = BinaryExpr{Div, $1, $3}
 	}
 |	expr '%' expr
 	{
-		$$ = BinaryExpr{MOD, $1, $3}
+		$$ = BinaryExpr{Mod, $1, $3}
 	}
 
 oexpr:
@@ -289,11 +289,11 @@ uexpr:
 	}
 |	'-' uexpr
 	{
-		$$ = UnaryExpr{SUB, $2}
+		$$ = UnaryExpr{Minus, $2}
 	}
 |	'!' uexpr
 	{
-		$$ = UnaryExpr{NOT, $2}
+		$$ = UnaryExpr{Not, $2}
 	}
 |	'(' expr ')'
 	{
@@ -336,7 +336,7 @@ func Compile(r io.Reader, p *parse.Parser) (*Root, error) {
 	ast = NewRoot()
 	parser = p
 	defaultAction = BlockStmt{[]Stmt{
-		ExprStmt{CallExpr{parser.Writer, "print", []Expr{Col{parser, Lit(0)}}}},
+		ExprStmt{CallExpr{parser.Writer, "print", []Expr{FieldExpr{parser, Lit(0)}}}},
 	}}
 	l := &yyLex{reader: bufio.NewReader(r), buf: new(bytes.Buffer)}
 	yyParse(l)

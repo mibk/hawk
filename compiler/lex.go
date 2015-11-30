@@ -54,13 +54,11 @@ func (l *yyLex) Lex(yylval *yySymType) int {
 				l.next()
 				return LE
 			}
-			return LT
 		case '>':
 			if l.peek() == '=' {
 				l.next()
 				return GE
 			}
-			return GT
 		case '+':
 			if l.peek() == '+' {
 				l.next()
@@ -94,10 +92,10 @@ func (l *yyLex) Lex(yylval *yySymType) int {
 		default:
 			if c == '&' && l.peek() == '&' {
 				l.next()
-				return LAND
+				return ANDAND
 			} else if c == '|' && l.peek() == '|' {
 				l.next()
-				return LOR
+				return OROR
 			}
 			l.Error(fmt.Sprintf("unrecognized character %q", c))
 		}

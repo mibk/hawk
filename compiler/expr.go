@@ -42,58 +42,71 @@ func (i Ident) Eval() value.Value {
 	return i.tree.vars[i.name]
 }
 
-type Col struct {
+type FieldExpr struct {
 	p   *parse.Parser
-	Num Expr
+	num Expr
 }
 
-func (c Col) Eval() value.Value {
-	n := c.Num.Eval().Int()
-	return value.NewString(c.p.Field(n))
+func (f FieldExpr) Eval() value.Value {
+	n := f.num.Eval().Int()
+	return value.NewString(f.p.Field(n))
 }
+
+type ExprOp int
+
+const (
+	_      ExprOp = iota
+	Add           // left + right
+	Sub           // left - right
+	Mul           // left * right
+	Div           // left / right
+	Mod           // left % right
+	OrOr          // left || right
+	AndAnd        // left && right
+	Eq            // left == right
+	NotEq         // left != right
+	Lt            // left < right
+	LtEq          // left <= right
+	Gt            // left > right
+	GtEq          // left >= right
+
+	Plus  // +expr
+	Minus // -expr
+	Not   // !expr
+)
 
 type BinaryExpr struct {
-	typ   int
+	op    ExprOp
 	left  Expr
 	right Expr
 }
 
-const (
-	ADD = iota
-	SUB
-	MUL
-	DIV
-	MOD
-
-	NOT
-)
-
 func (e BinaryExpr) Eval() value.Value {
-	switch e.typ {
-	case ADD, SUB, MUL, DIV, MOD:
+	switch e.op {
+	case Add, Sub, Mul, Div, Mod:
 		l := e.left.Eval().Float64()
 		r := e.right.Eval().Float64()
 		var f float64
-		switch e.typ {
-		case ADD:
+		switch e.op {
+		case Add:
 			f = l + r
-		case SUB:
+		case Sub:
 			f = l - r
-		case MUL:
+		case Mul:
 			f = l * r
-		case DIV:
+		case Div:
 			f = l / r
-		case MOD:
+		case Mod:
 			f = float64(int(l) % int(r))
 		default:
 			panic("unreachable")
 		}
 		return value.NewNumber(f)
 	}
-	switch e.typ {
-	case LOR, LAND:
+	switch e.op {
+	case OrOr, AndAnd:
 		lval := e.left.Eval()
-		if e.typ == LOR {
+		if e.op == OrOr {
 			if lval.Bool() {
 				return value.NewBool(true)
 			}
@@ -106,18 +119,18 @@ func (e BinaryExpr) Eval() value.Value {
 	}
 	cmp := e.left.Eval().Cmp(e.right.Eval())
 	var b bool
-	switch e.typ {
-	case EQ:
+	switch e.op {
+	case Eq:
 		b = cmp == 0
-	case NE:
+	case NotEq:
 		b = cmp != 0
-	case LT:
+	case Lt:
 		b = cmp == -1
-	case LE:
+	case LtEq:
 		b = cmp <= 0
-	case GT:
+	case Gt:
 		b = cmp == 1
-	case GE:
+	case GtEq:
 		b = cmp >= 0
 	default:
 		panic("unreachable")
@@ -126,15 +139,15 @@ func (e BinaryExpr) Eval() value.Value {
 }
 
 type UnaryExpr struct {
-	typ  int
+	op   ExprOp
 	expr Expr
 }
 
 func (e UnaryExpr) Eval() value.Value {
-	switch e.typ {
-	case SUB:
+	switch e.op {
+	case Sub:
 		return value.NewNumber(-e.expr.Eval().Float64())
-	case NOT:
+	case Not:
 		return value.NewBool(!e.expr.Eval().Bool())
 	default:
 		panic("unreachable")

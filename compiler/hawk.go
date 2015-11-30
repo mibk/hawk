@@ -43,14 +43,12 @@ const BREAK = 57355
 const CONTINUE = 57356
 const INC = 57357
 const DEC = 57358
-const LOR = 57359
-const LAND = 57360
+const OROR = 57359
+const ANDAND = 57360
 const EQ = 57361
 const NE = 57362
 const LE = 57363
 const GE = 57364
-const LT = 57365
-const GT = 57366
 
 var yyToknames = [...]string{
 	"$end",
@@ -69,14 +67,14 @@ var yyToknames = [...]string{
 	"CONTINUE",
 	"INC",
 	"DEC",
-	"LOR",
-	"LAND",
+	"OROR",
+	"ANDAND",
 	"EQ",
 	"NE",
 	"LE",
 	"GE",
-	"LT",
-	"GT",
+	"'<'",
+	"'>'",
 	"'+'",
 	"'-'",
 	"'*'",
@@ -104,7 +102,7 @@ func Compile(r io.Reader, p *parse.Parser) (*Root, error) {
 	ast = NewRoot()
 	parser = p
 	defaultAction = BlockStmt{[]Stmt{
-		ExprStmt{CallExpr{parser.Writer, "print", []Expr{Col{parser, Lit(0)}}}},
+		ExprStmt{CallExpr{parser.Writer, "print", []Expr{FieldExpr{parser, Lit(0)}}}},
 	}}
 	l := &yyLex{reader: bufio.NewReader(r), buf: new(bytes.Buffer)}
 	yyParse(l)
@@ -235,7 +233,7 @@ var yyTok1 = [...]int{
 	3, 3, 3, 35, 3, 3, 34, 29, 3, 3,
 	36, 37, 27, 25, 38, 26, 3, 28, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 30,
-	3, 33, 3, 3, 3, 3, 3, 3, 3, 3,
+	23, 33, 24, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
@@ -247,7 +245,7 @@ var yyTok2 = [...]int{
 
 	2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
 	12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-	22, 23, 24,
+	22,
 }
 var yyTok3 = [...]int{
 	0,
@@ -690,13 +688,13 @@ yydefault:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line hawk.y:132
 		{
-			yyVAL.stmt = AssignStmt{ast, yyDollar[1].sym, BinaryExpr{ADD, Ident{ast, yyDollar[1].sym}, Lit(1)}}
+			yyVAL.stmt = AssignStmt{ast, yyDollar[1].sym, BinaryExpr{Add, Ident{ast, yyDollar[1].sym}, Lit(1)}}
 		}
 	case 15:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line hawk.y:136
 		{
-			yyVAL.stmt = AssignStmt{ast, yyDollar[1].sym, BinaryExpr{SUB, Ident{ast, yyDollar[1].sym}, Lit(1)}}
+			yyVAL.stmt = AssignStmt{ast, yyDollar[1].sym, BinaryExpr{Sub, Ident{ast, yyDollar[1].sym}, Lit(1)}}
 		}
 	case 16:
 		yyDollar = yyS[yypt-1 : yypt+1]
@@ -792,85 +790,85 @@ yydefault:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line hawk.y:211
 		{
-			yyVAL.expr = Col{parser, yyDollar[2].expr}
+			yyVAL.expr = FieldExpr{parser, yyDollar[2].expr}
 		}
 	case 32:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:215
 		{
-			yyVAL.expr = BinaryExpr{LOR, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = BinaryExpr{OrOr, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 33:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:219
 		{
-			yyVAL.expr = BinaryExpr{LAND, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = BinaryExpr{AndAnd, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 34:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:223
 		{
-			yyVAL.expr = BinaryExpr{EQ, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = BinaryExpr{Eq, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 35:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:227
 		{
-			yyVAL.expr = BinaryExpr{NE, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = BinaryExpr{NotEq, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 36:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:231
 		{
-			yyVAL.expr = BinaryExpr{LE, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = BinaryExpr{LtEq, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 37:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:235
 		{
-			yyVAL.expr = BinaryExpr{GE, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = BinaryExpr{GtEq, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 38:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:239
 		{
-			yyVAL.expr = BinaryExpr{LT, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = BinaryExpr{Lt, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 39:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:243
 		{
-			yyVAL.expr = BinaryExpr{GT, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = BinaryExpr{Gt, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 40:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:247
 		{
-			yyVAL.expr = BinaryExpr{ADD, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = BinaryExpr{Add, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 41:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:251
 		{
-			yyVAL.expr = BinaryExpr{SUB, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = BinaryExpr{Sub, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 42:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:255
 		{
-			yyVAL.expr = BinaryExpr{MUL, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = BinaryExpr{Mul, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 43:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:259
 		{
-			yyVAL.expr = BinaryExpr{DIV, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = BinaryExpr{Div, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 44:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:263
 		{
-			yyVAL.expr = BinaryExpr{MOD, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = BinaryExpr{Mod, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 45:
 		yyDollar = yyS[yypt-0 : yypt+1]
@@ -906,13 +904,13 @@ yydefault:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line hawk.y:291
 		{
-			yyVAL.expr = UnaryExpr{SUB, yyDollar[2].expr}
+			yyVAL.expr = UnaryExpr{Minus, yyDollar[2].expr}
 		}
 	case 51:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line hawk.y:295
 		{
-			yyVAL.expr = UnaryExpr{NOT, yyDollar[2].expr}
+			yyVAL.expr = UnaryExpr{Not, yyDollar[2].expr}
 		}
 	case 52:
 		yyDollar = yyS[yypt-3 : yypt+1]

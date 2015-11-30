@@ -36,7 +36,7 @@ func main() {
 	}
 }
 
-func compile(p *parse.Parser) *compiler.Tree {
+func compile(p *parse.Parser) *compiler.Root {
 	var srcr io.Reader
 	name := "line"
 	if *file != "" {

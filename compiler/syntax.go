@@ -2,7 +2,7 @@ package compiler
 
 import "github.com/mibk/hawk/value"
 
-type Tree struct {
+type Root struct {
 	begin    []Stmt
 	pActions []Stmt
 	end      []Stmt
@@ -10,28 +10,28 @@ type Tree struct {
 	vars map[string]value.Value
 }
 
-func NewTree() *Tree {
-	return &Tree{vars: make(map[string]value.Value)}
+func NewRoot() *Root {
+	return &Root{vars: make(map[string]value.Value)}
 }
 
-func (t Tree) Begin() {
-	for _, a := range t.begin {
+func (r Root) Begin() {
+	for _, a := range r.begin {
 		a.Exec()
 	}
 }
 
-func (t Tree) End() {
-	for _, a := range t.end {
+func (r Root) End() {
+	for _, a := range r.end {
 		a.Exec()
 	}
 }
 
-func (t Tree) AnyPatternActions() bool {
-	return len(t.pActions) > 0 || len(t.end) > 0
+func (r Root) AnyPatternActions() bool {
+	return len(r.pActions) > 0 || len(r.end) > 0
 }
 
-func (t Tree) Exec() {
-	for _, a := range t.pActions {
+func (r Root) Exec() {
+	for _, a := range r.pActions {
 		a.Exec()
 	}
 }

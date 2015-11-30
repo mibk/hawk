@@ -157,7 +157,12 @@ func (l *yyLex) lexString(yylval *yySymType) int {
 	return STRING
 }
 
-func (l *yyLex) next() rune {
+func (l *yyLex) next() (r rune) {
+	defer func() {
+		if r == '\n' {
+			lexlineno++
+		}
+	}()
 	if l.peeked != 0 {
 		r := l.peeked
 		l.peeked = 0
@@ -166,9 +171,6 @@ func (l *yyLex) next() rune {
 	r, _, err := l.reader.ReadRune()
 	if err != nil {
 		return eof
-	}
-	if r == '\n' {
-		lexlineno++
 	}
 	l.last = r
 	return r

@@ -7,12 +7,12 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"os"
 	"strconv"
 	"unicode"
 )
 
 type yyLex struct {
+	err    error
 	reader *bufio.Reader
 	last   rune
 	peeked rune
@@ -188,6 +188,7 @@ func (l *yyLex) backup() {
 }
 
 func (l *yyLex) Error(s string) {
-	fmt.Printf("hawk: line:%d: %s\n", lexlineno, s)
-	os.Exit(1)
+	if l.err == nil {
+		l.err = fmt.Errorf("%d: %s\n", lexlineno, s)
+	}
 }

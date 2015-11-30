@@ -100,14 +100,15 @@ const yyMaxDepth = 200
 
 //line hawk.y:333
 
-func Compile(r io.Reader, p *parse.Parser) *Tree {
+func Compile(r io.Reader, p *parse.Parser) (*Tree, error) {
 	ast = NewTree()
 	parser = p
 	defaultAction = BlockStmt{[]Stmt{
 		ExprStmt{CallExpr{parser.Writer, "print", []Expr{Col{parser, Lit(0)}}}},
 	}}
-	yyParse(&yyLex{reader: bufio.NewReader(r), buf: new(bytes.Buffer)})
-	return ast
+	l := &yyLex{reader: bufio.NewReader(r), buf: new(bytes.Buffer)}
+	yyParse(l)
+	return ast, l.err
 }
 
 //line yacctab:1

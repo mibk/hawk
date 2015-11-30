@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 
@@ -27,11 +26,8 @@ func main() {
 		in := bufio.NewReader(os.Stdin)
 		for {
 			line, err := in.ReadBytes('\n')
-			if err == io.EOF {
-				break
-			}
 			if err != nil {
-				log.Fatalf("ReadBytes: %s", err)
+				break
 			}
 			p.SetFields(strings.Fields(string(line)))
 			prog.Exec()
@@ -42,6 +38,7 @@ func main() {
 
 func compile(p *parse.Parser) *compiler.Tree {
 	var srcr io.Reader
+	name := "line"
 	if *file != "" {
 		f, err := os.Open(*file)
 		if err != nil {
@@ -49,15 +46,21 @@ func compile(p *parse.Parser) *compiler.Tree {
 		}
 		defer f.Close()
 		srcr = f
+		name = *file
 	} else if len(os.Args) < 2 {
 		fmt.Println(`usage:
 	hawk <program>
 
 It is possible to write the program in a separate file and then call:
 	xargs -0 -a <program-file> hawk`)
-		os.Exit(1)
+		os.Exit(2)
 	} else {
 		srcr = strings.NewReader(os.Args[1])
 	}
-	return compiler.Compile(srcr, p)
+	prog, err := compiler.Compile(srcr, p)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "hawk: %s:%v", name, err)
+		os.Exit(1)
+	}
+	return prog
 }

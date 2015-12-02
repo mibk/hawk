@@ -38,7 +38,7 @@ func (b BlockStmt) Exec() Status {
 }
 
 type AssignStmt struct {
-	tree *Root
+	tree *Program
 	name string
 	expr Expr
 }

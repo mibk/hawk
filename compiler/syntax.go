@@ -1,8 +1,16 @@
 package compiler
 
-import "github.com/mibk/hawk/value"
+import (
+	"bufio"
+	"io"
+	"strings"
 
-type Root struct {
+	"github.com/mibk/hawk/parse"
+	"github.com/mibk/hawk/value"
+)
+
+type Program struct {
+	parser   *parse.Parser
 	begin    []Stmt
 	pActions []Stmt
 	end      []Stmt
@@ -10,28 +18,44 @@ type Root struct {
 	vars map[string]value.Value
 }
 
-func NewRoot() *Root {
-	return &Root{vars: make(map[string]value.Value)}
+func NewProgram(p *parse.Parser) *Program {
+	return &Program{parser: p, vars: make(map[string]value.Value)}
 }
 
-func (r Root) Begin() {
-	for _, a := range r.begin {
+func (p Program) Run(in io.Reader) {
+	p.Begin()
+	if p.anyPatternActions() {
+		in := bufio.NewReader(in)
+		for {
+			line, err := in.ReadBytes('\n')
+			if err != nil {
+				break
+			}
+			p.parser.SetFields(strings.Fields(string(line)))
+			p.Exec()
+		}
+		p.End()
+	}
+}
+
+func (p Program) Begin() {
+	for _, a := range p.begin {
 		a.Exec()
 	}
 }
 
-func (r Root) End() {
-	for _, a := range r.end {
+func (p Program) End() {
+	for _, a := range p.end {
 		a.Exec()
 	}
 }
 
-func (r Root) AnyPatternActions() bool {
-	return len(r.pActions) > 0 || len(r.end) > 0
+func (p Program) anyPatternActions() bool {
+	return len(p.pActions) > 0 || len(p.end) > 0
 }
 
-func (r Root) Exec() {
-	for _, a := range r.pActions {
+func (p Program) Exec() {
+	for _, a := range p.pActions {
 		a.Exec()
 	}
 }

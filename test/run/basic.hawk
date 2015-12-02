@@ -1,0 +1,10 @@
+BEGIN {
+	for ; x < 10; x++ {
+		if x >= 9 {
+			x++;
+		};
+	};
+	if x != 11 {
+		print "got", x, "want 11";
+	};
+}

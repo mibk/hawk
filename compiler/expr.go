@@ -34,7 +34,7 @@ func (c CallExpr) Eval() value.Value {
 }
 
 type Ident struct {
-	tree *Root
+	tree *Program
 	name string
 }
 

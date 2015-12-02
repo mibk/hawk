@@ -14,7 +14,7 @@ import (
 
 var (
 	parser *parse.Parser
-	ast    *Root
+	ast    *Program
 
 	defaultAction BlockStmt
 )
@@ -98,8 +98,8 @@ const yyMaxDepth = 200
 
 //line hawk.y:333
 
-func Compile(r io.Reader, p *parse.Parser) (*Root, error) {
-	ast = NewRoot()
+func Compile(r io.Reader, p *parse.Parser) (*Program, error) {
+	ast = NewProgram(p)
 	parser = p
 	defaultAction = BlockStmt{[]Stmt{
 		ExprStmt{CallExpr{parser.Writer, "print", []Expr{FieldExpr{parser, Lit(0)}}}},

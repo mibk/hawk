@@ -13,6 +13,19 @@ type Expr interface {
 	Eval() value.Value
 }
 
+type TernaryExpr struct {
+	cond Expr
+	yes  Expr
+	no   Expr
+}
+
+func (t TernaryExpr) Eval() value.Value {
+	if t.cond.Eval().Bool() {
+		return t.yes.Eval()
+	}
+	return t.no.Eval()
+}
+
 type CallExpr struct {
 	writer io.Writer
 	fun    string

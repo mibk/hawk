@@ -1,0 +1,11 @@
+BEGIN {
+	x = 2;
+	y = x == 1 ? "one" :
+	    x == 2 ? "two" :
+	    x == 3 ? "three" :
+	    x == 4 ? "four" : "other";
+	want = "two";
+	if y != want {
+		print "got", y, "want", want;
+	};
+}

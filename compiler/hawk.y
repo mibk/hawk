@@ -39,6 +39,7 @@ var (
 %token       FOR BREAK CONTINUE
 %token       INC DEC
 
+%right '?' ':'
 %left OROR
 %left ANDAND
 %left EQ NE LE GE '<' '>'
@@ -206,6 +207,10 @@ expr:
 	uexpr
 	{
 		$$ = $1
+	}
+|	expr '?' expr ':' expr
+	{
+		$$ = TernaryExpr{$1, $3, $5}
 	}
 |	'$' uexpr
 	{

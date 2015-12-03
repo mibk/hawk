@@ -38,6 +38,7 @@ var (
 %token       IF ELSE
 %token       FOR BREAK CONTINUE
 %token       INC DEC
+%token       ADDEQ SUBEQ MULEQ DIVEQ MODEQ
 
 %right '?' ':'
 %left OROR
@@ -126,6 +127,26 @@ stmt:
 |	IDENT '=' expr
 	{
 		$$ = AssignStmt{ast, $1, $3}
+	}
+|	IDENT ADDEQ expr
+	{
+		$$ = AssignStmt{ast, $1, BinaryExpr{Add, Ident{ast, $1}, $3}}
+	}
+|	IDENT SUBEQ expr
+	{
+		$$ = AssignStmt{ast, $1, BinaryExpr{Sub, Ident{ast, $1}, $3}}
+	}
+|	IDENT MULEQ expr
+	{
+		$$ = AssignStmt{ast, $1, BinaryExpr{Mul, Ident{ast, $1}, $3}}
+	}
+|	IDENT DIVEQ expr
+	{
+		$$ = AssignStmt{ast, $1, BinaryExpr{Div, Ident{ast, $1}, $3}}
+	}
+|	IDENT MODEQ expr
+	{
+		$$ = AssignStmt{ast, $1, BinaryExpr{Mod, Ident{ast, $1}, $3}}
 	}
 	// TODO: should rather be 'uexpr INC' and catch unwanted usage during
 	//	semantic analysis, but for now...

@@ -1,0 +1,20 @@
+BEGIN {
+	x = 5;
+	x += 2;
+	x *= 3;
+	if x != 21 {
+		print "got", x, "want 21";
+	};
+
+	x /= 7;
+	x -= -6;
+	if x != 9 {
+		print "got", x, "want 9";
+	};
+
+	x %= 7;
+	if x != 2 {
+		print "got", x, "want 2";
+	};
+}
+

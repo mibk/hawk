@@ -64,21 +64,35 @@ func (l *yyLex) Lex(yylval *yySymType) int {
 			if l.peek() == '+' {
 				l.next()
 				return INC
+			} else if l.peek() == '=' {
+				l.next()
+				return ADDEQ
 			}
 		case '-':
 			if l.peek() == '-' {
 				l.next()
 				return DEC
+			} else if l.peek() == '=' {
+				l.next()
+				return SUBEQ
 			}
 		case '*':
+			if l.peek() == '=' {
+				l.next()
+				return MULEQ
+			}
 		case '/':
-			if l.peek() == '/' {
+			switch l.peek() {
+			case '=':
+				l.next()
+				return DIVEQ
+			case '/':
 				l.next()
 				for l.next() != '\n' {
 				}
 				l.backup()
 				continue // ignore oneline comment
-			} else if l.peek() == '*' {
+			case '*':
 				l.next()
 				for !(l.next() == '*' && l.peek() == '/') {
 				}
@@ -86,6 +100,10 @@ func (l *yyLex) Lex(yylval *yySymType) int {
 				continue // ignore block comment
 			}
 		case '%':
+			if l.peek() == '=' {
+				l.next()
+				return MODEQ
+			}
 		case '"':
 			return l.lexString(yylval)
 		case ' ', '\t', '\n', '\r':

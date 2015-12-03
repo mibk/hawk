@@ -158,7 +158,7 @@ type UnaryExpr struct {
 
 func (e UnaryExpr) Eval() value.Value {
 	switch e.op {
-	case Sub:
+	case Minus:
 		return value.NewNumber(-e.expr.Eval().Float64())
 	case Not:
 		return value.NewBool(!e.expr.Eval().Bool())

@@ -15,11 +15,11 @@ type Program struct {
 	pActions []Stmt
 	end      []Stmt
 
-	vars map[string]value.Value
+	vars map[string]*value.Value
 }
 
 func NewProgram(p *parse.Parser) *Program {
-	return &Program{parser: p, vars: make(map[string]value.Value)}
+	return &Program{parser: p, vars: make(map[string]*value.Value)}
 }
 
 func (p Program) Run(in io.Reader) {

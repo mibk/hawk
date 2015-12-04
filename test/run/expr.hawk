@@ -8,4 +8,15 @@ BEGIN {
 	if y != want {
 		print "got", y, "want", want;
 	};
+
+	a = 3
+	b = 101 * -a
+	b += 3
+	c = -b/2
+	d = c%100
+
+	if d != 50 {
+		print "got", d, "want 50"
+		print "a", a, "b", b, "c", c, "d", d
+	}
 }

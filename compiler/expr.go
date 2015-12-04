@@ -10,7 +10,7 @@ import (
 )
 
 type Expr interface {
-	Eval() value.Value
+	Eval() *value.Value
 }
 
 type TernaryExpr struct {
@@ -19,7 +19,7 @@ type TernaryExpr struct {
 	no   Expr
 }
 
-func (t TernaryExpr) Eval() value.Value {
+func (t TernaryExpr) Eval() *value.Value {
 	if t.cond.Eval().Bool() {
 		return t.yes.Eval()
 	}
@@ -32,7 +32,7 @@ type CallExpr struct {
 	args   []Expr
 }
 
-func (c CallExpr) Eval() value.Value {
+func (c CallExpr) Eval() *value.Value {
 	switch c.fun {
 	case "add":
 		// Add some ugly function just for the purpose to have one
@@ -60,8 +60,12 @@ type Ident struct {
 	name string
 }
 
-func (i Ident) Eval() value.Value {
-	return i.tree.vars[i.name]
+func (i Ident) Eval() *value.Value {
+	v, ok := i.tree.vars[i.name]
+	if !ok {
+		return new(value.Value)
+	}
+	return v
 }
 
 type FieldExpr struct {
@@ -69,7 +73,7 @@ type FieldExpr struct {
 	num Expr
 }
 
-func (f FieldExpr) Eval() value.Value {
+func (f FieldExpr) Eval() *value.Value {
 	n := f.num.Eval().Int()
 	return value.NewString(f.p.Field(n))
 }
@@ -103,29 +107,26 @@ type BinaryExpr struct {
 	right Expr
 }
 
-func (e BinaryExpr) Eval() value.Value {
+func (e BinaryExpr) Eval() *value.Value {
+	var z value.Value
 	switch e.op {
 	case Add, Sub, Mul, Div, Mod:
-		l := e.left.Eval().Float64()
-		r := e.right.Eval().Float64()
-		var f float64
+		l := e.left.Eval()
+		r := e.right.Eval()
 		switch e.op {
 		case Add:
-			f = l + r
+			z.Add(l, r)
 		case Sub:
-			f = l - r
+			z.Sub(l, r)
 		case Mul:
-			f = l * r
+			z.Mul(l, r)
 		case Div:
-			f = l / r
+			z.Div(l, r)
 		case Mod:
-			f = float64(int(l) % int(r))
+			z.Mod(l, r)
 		default:
 			panic("unreachable")
 		}
-		return value.NewNumber(f)
-	}
-	switch e.op {
 	case OrOr, AndAnd:
 		lval := e.left.Eval()
 		if e.op == OrOr {
@@ -138,26 +139,28 @@ func (e BinaryExpr) Eval() value.Value {
 			return value.NewBool(false)
 		}
 		return value.NewBool(e.right.Eval().Bool())
-	}
-	cmp := e.left.Eval().Cmp(e.right.Eval())
-	var b bool
-	switch e.op {
-	case Eq:
-		b = cmp == 0
-	case NotEq:
-		b = cmp != 0
-	case Lt:
-		b = cmp == -1
-	case LtEq:
-		b = cmp <= 0
-	case Gt:
-		b = cmp == 1
-	case GtEq:
-		b = cmp >= 0
 	default:
-		panic("unreachable")
+		cmp := e.left.Eval().Cmp(e.right.Eval())
+		var b bool
+		switch e.op {
+		case Eq:
+			b = cmp == 0
+		case NotEq:
+			b = cmp != 0
+		case Lt:
+			b = cmp == -1
+		case LtEq:
+			b = cmp <= 0
+		case Gt:
+			b = cmp == 1
+		case GtEq:
+			b = cmp >= 0
+		default:
+			panic("unreachable")
+		}
+		return value.NewBool(b)
 	}
-	return value.NewBool(b)
+	return &z
 }
 
 type UnaryExpr struct {
@@ -165,25 +168,27 @@ type UnaryExpr struct {
 	expr Expr
 }
 
-func (e UnaryExpr) Eval() value.Value {
+func (e UnaryExpr) Eval() *value.Value {
+	var z value.Value
 	switch e.op {
 	case Minus:
-		return value.NewNumber(-e.expr.Eval().Float64())
+		z.Neg(e.expr.Eval())
 	case Not:
 		return value.NewBool(!e.expr.Eval().Bool())
 	default:
 		panic("unreachable")
 	}
+	return &z
 }
 
 type Lit int
 
-func (l Lit) Eval() value.Value {
+func (l Lit) Eval() *value.Value {
 	return value.NewNumber(float64(l))
 }
 
 type StringLit string
 
-func (s StringLit) Eval() value.Value {
+func (s StringLit) Eval() *value.Value {
 	return value.NewString(string(s))
 }

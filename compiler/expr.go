@@ -34,6 +34,15 @@ type CallExpr struct {
 
 func (c CallExpr) Eval() value.Value {
 	switch c.fun {
+	case "add":
+		// Add some ugly function just for the purpose to have one
+		// as print cannot be used as a func.
+		// TODO: remove this function.
+		f := .0
+		for _, e := range c.args {
+			f += e.Eval().Float64()
+		}
+		return value.NewNumber(f)
 	case "print":
 		var vals []interface{}
 		for _, e := range c.args {

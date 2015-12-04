@@ -28,7 +28,7 @@ var (
 }
 
 %type <expr>     expr oexpr uexpr
-%type <exprlist> exprlist  oexprlist
+%type <exprlist> exprlist
 %type <stmt>     stmt ostmt paction ifstmt else if_or_block forstmt
 %type <stmtlist> stmtlist blockstmt pactionlist
 
@@ -52,7 +52,7 @@ var (
 %%
 
 top:
-	pactionlist
+	pactionlist ';'
 	{
 		for i := 0; i < len($1); {
 			pa := $1[i]
@@ -101,7 +101,7 @@ paction:
 	}
 
 blockstmt:
-	'{' stmtlist ';' '}'
+	'{' stmtlist osemi '}'
 	{
 		$$ = $2
 	}
@@ -329,12 +329,13 @@ uexpr:
 	{
 		$$ = Ident{ast, $1}
 	}
-|	IDENT '(' oexprlist ')'
+|	IDENT '(' ')'
+	{
+		$$ = CallExpr{parser.Writer, $1, nil}
+	}
+|	IDENT '(' exprlist ocomma ')'
 	{
 		$$ = CallExpr{parser.Writer, $1, $3}
-	}
-	IDENT
-	{
 	}
 
 exprlist:
@@ -347,14 +348,12 @@ exprlist:
 		$$ = append($1, $3)
 	}
 
-oexprlist:
-	{
-		$$ = nil
-	}
-|	exprlist
-	{
-		$$ = $1
-	}
+
+osemi:
+|	';'
+
+ocomma:
+|	','
 
 %%
 

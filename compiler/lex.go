@@ -19,16 +19,31 @@ type yyLex struct {
 	buf    *bytes.Buffer
 }
 
-const eof = 0
+const eof = -1
 
-var lexlineno = 1
+var (
+	lexlineno = 1
+	nlsemi    bool
+)
 
 func init() {
 	yyErrorVerbose = true
 }
 
-func (l *yyLex) Lex(yylval *yySymType) int {
+func (l *yyLex) Lex(yylval *yySymType) (tok int) {
+	defer func() {
+		switch tok {
+		case IDENT, NUM, STRING, BREAK, CONTINUE, INC, DEC, ')', '}':
+			nlsemi = true
+		default:
+			nlsemi = false
+		}
+	}()
 	for {
+		if nlsemi && l.peek() == '\n' {
+			nlsemi = false
+			return ';'
+		}
 		c := l.next()
 		if unicode.IsDigit(c) {
 			return l.lexNum(yylval)
@@ -37,7 +52,12 @@ func (l *yyLex) Lex(yylval *yySymType) int {
 		}
 		switch c {
 		case eof:
-			return eof
+			if nlsemi {
+				// Treat EOF as \n.
+				nlsemi = false
+				return ';'
+			}
+			return 0
 		case ';', '{', '}', ',', '(', ')', '$':
 		case '?', ':':
 		case '=':
@@ -93,10 +113,21 @@ func (l *yyLex) Lex(yylval *yySymType) int {
 				l.backup()
 				continue // ignore oneline comment
 			case '*':
+				nl := false
 				l.next()
-				for !(l.next() == '*' && l.peek() == '/') {
+				for {
+					r := l.next()
+					if r == '*' && l.peek() == '/' {
+						break
+					} else if nl == false && r == '\n' {
+						lexlineno--
+						nl = true
+					}
 				}
 				l.next()
+				if nl {
+					l.peeked = '\n'
+				}
 				continue // ignore block comment
 			}
 		case '%':
@@ -187,7 +218,7 @@ func (l *yyLex) next() (r rune) {
 	}
 	r, _, err := l.reader.ReadRune()
 	if err != nil {
-		return eof
+		r = eof
 	}
 	l.last = r
 	return r

@@ -187,6 +187,10 @@ func (l *yyLex) lexIdent(yylval *yySymType) int {
 		return BREAK
 	case "continue":
 		return CONTINUE
+	case "func":
+		return FUNC
+	case "return":
+		return RETURN
 	}
 	yylval.sym = sym
 	switch sym {

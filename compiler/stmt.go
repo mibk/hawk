@@ -6,6 +6,7 @@ const (
 	StatusNone Status = iota
 	StatusBreak
 	StatusContinue
+	StatusReturn
 )
 
 type Stmt interface {
@@ -27,9 +28,9 @@ type BlockStmt struct {
 
 func (b BlockStmt) Exec() Status {
 	for _, stmt := range b.stmts {
-		switch stmt.Exec() {
-		case StatusBreak:
-			return StatusBreak
+		switch s := stmt.Exec(); s {
+		case StatusBreak, StatusReturn:
+			return s
 		case StatusContinue:
 			return StatusNone
 		}
@@ -75,8 +76,11 @@ func (f ForStmt) Exec() Status {
 		f.init.Exec()
 	}
 	for f.cond == nil || f.cond.Eval().Bool() {
-		if f.body.Exec() == StatusBreak {
+		switch f.body.Exec() {
+		case StatusBreak:
 			break
+		case StatusReturn:
+			return StatusReturn
 		}
 		if f.step != nil {
 			f.step.Exec()
@@ -91,6 +95,18 @@ type StatusStmt struct {
 
 func (s StatusStmt) Exec() Status {
 	return s.status
+}
+
+type ReturnStmt struct {
+	tree *Program
+	expr Expr
+}
+
+func (r ReturnStmt) Exec() Status {
+	if r.expr != nil {
+		r.tree.retval = r.expr.Eval()
+	}
+	return StatusReturn
 }
 
 type CallStmt CallExpr

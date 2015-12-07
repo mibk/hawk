@@ -21,16 +21,22 @@ var (
 %union {
 	num      int
 	sym      string
+	symlist  []string
+	decl     Decl
+	decllist []Decl
 	expr     Expr
 	exprlist []Expr
 	stmt     Stmt
 	stmtlist []Stmt
 }
 
+%type <decl>     decl paction funcdecl
+%type <symlist>  arglist
+%type <decllist> decllist
 %type <expr>     expr oexpr uexpr
 %type <exprlist> exprlist
-%type <stmt>     stmt ostmt paction ifstmt else if_or_block forstmt
-%type <stmtlist> stmtlist blockstmt pactionlist
+%type <stmt>     stmt ostmt ifstmt else if_or_block forstmt
+%type <stmtlist> stmtlist blockstmt
 
 %token <num> NUM
 %token <sym> IDENT STRING PRINT
@@ -39,6 +45,7 @@ var (
 %token       FOR BREAK CONTINUE
 %token       INC DEC
 %token       ADDEQ SUBEQ MULEQ DIVEQ MODEQ
+%token       FUNC RETURN
 
 %right '?' ':'
 %left OROR
@@ -47,39 +54,45 @@ var (
 %left '+' '-'
 %left '*' '/' '%'
 
-%start top
-
 %%
 
 top:
-	pactionlist ';'
+	decllist ';'
 	{
-		for i := 0; i < len($1); {
-			pa := $1[i]
-			switch pa.(type) {
+		for _, d := range $1 {
+			switch d := d.(type) {
 			case BeginAction:
-				ast.begin = append(ast.begin, pa)
-				goto del
+				ast.begin = append(ast.begin, d)
 			case EndAction:
-				ast.end = append(ast.end, pa)
-				goto del
+				ast.end = append(ast.end, d)
+			case PatternAction:
+				ast.pActions = append(ast.pActions, d)
+			case FuncDecl:
+				ast.funcs[d.name] = d
+			default:
+				panic("unreachable")
 			}
-			i++
-			continue
-		del:
-			$1 = append($1[:i], $1[i+1:]...)
 		}
-		ast.pActions = $1
 	}
 
-pactionlist:
-	paction
+decllist:
+	decl
 	{
-		$$ = []Stmt{$1}
+		$$ = []Decl{$1}
 	}
-|	pactionlist ';' paction
+|	decllist ';' decl
 	{
 		$$ = append($1, $3)
+	}
+
+decl:
+	paction
+	{
+		$$ = $1
+	}
+|	funcdecl
+	{
+		$$ = $1
 	}
 
 paction:
@@ -98,6 +111,25 @@ paction:
 |	END blockstmt
 	{
 		$$ = EndAction{BlockStmt{$2}}
+	}
+
+funcdecl:
+	FUNC IDENT '(' arglist ')' blockstmt
+	{
+		$$ = FuncDecl{$2, $4, BlockStmt{$6}}
+	}
+
+arglist:
+	{
+		$$ = nil
+	}
+|	IDENT
+	{
+		$$ = []string{$1}
+	}
+|	arglist ',' IDENT
+	{
+		$$ = append($1, $3)
 	}
 
 blockstmt:
@@ -173,6 +205,10 @@ stmt:
 |	CONTINUE
 	{
 		$$ = StatusStmt{StatusContinue}
+	}
+|	RETURN oexpr
+	{
+		$$ = ReturnStmt{ast, $2}
 	}
 |	PRINT exprlist
 	{

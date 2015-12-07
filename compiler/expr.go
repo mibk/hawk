@@ -50,7 +50,24 @@ func (c CallExpr) Eval() *value.Value {
 		}
 		fmt.Fprintln(c.writer, vals...)
 	default:
-		log.Fatalf("unknown func %s", c.fun)
+		// TODO: Get rid of log.Fatalf
+		fn, ok := ast.funcs[c.fun]
+		if !ok {
+			log.Fatalf("unknown func %s", c.fun)
+		}
+		if len(fn.args) != len(c.args) {
+			log.Fatalf("%s: %d != %d: argument count mismatch", c.fun,
+				len(fn.args), len(c.args))
+		}
+		for i, n := range fn.args {
+			ast.vars[n] = c.args[i].Eval()
+		}
+		fn.body.Exec()
+		if ast.retval != nil {
+			v := ast.retval
+			ast.retval = nil
+			return v
+		}
 	}
 	return value.NewBool(false)
 }

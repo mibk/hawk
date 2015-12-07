@@ -1,0 +1,15 @@
+BEGIN {
+	if fac(5) != 120 {
+		print "got", fac(5), "want", 120
+	}
+}
+
+func fac(n) {
+	if n <= 1 {
+		return 1
+	}
+	// TODO: Change the order of * operands once the function
+	//	call will run in its own scope. Now, it wouldn't
+	//	work.
+	return n * fac(n - 1)
+}

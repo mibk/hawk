@@ -9,17 +9,25 @@ import (
 	"github.com/mibk/hawk/value"
 )
 
+type Decl interface{}
+
 type Program struct {
 	parser   *parse.Parser
 	begin    []Stmt
 	pActions []Stmt
 	end      []Stmt
 
-	vars map[string]*value.Value
+	vars   map[string]*value.Value
+	funcs  map[string]FuncDecl
+	retval *value.Value
 }
 
 func NewProgram(p *parse.Parser) *Program {
-	return &Program{parser: p, vars: make(map[string]*value.Value)}
+	return &Program{
+		parser: p,
+		vars:   make(map[string]*value.Value),
+		funcs:  make(map[string]FuncDecl),
+	}
 }
 
 func (p Program) Run(in io.Reader) {
@@ -78,4 +86,10 @@ func (p PatternAction) Exec() Status {
 		p.action.Exec()
 	}
 	return StatusNone
+}
+
+type FuncDecl struct {
+	name string
+	args []string
+	body Stmt
 }

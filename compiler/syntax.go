@@ -11,6 +11,11 @@ import (
 
 type Decl interface{}
 
+type Scope interface {
+	Var(name string) *value.Value
+	SetVar(name string, v *value.Value)
+}
+
 type Program struct {
 	parser   *parse.Parser
 	begin    []Stmt
@@ -28,6 +33,18 @@ func NewProgram(p *parse.Parser) *Program {
 		vars:   make(map[string]*value.Value),
 		funcs:  make(map[string]FuncDecl),
 	}
+}
+
+func (p Program) Var(name string) *value.Value {
+	v, ok := p.vars[name]
+	if !ok {
+		return new(value.Value)
+	}
+	return v
+}
+
+func (p Program) SetVar(name string, v *value.Value) {
+	p.vars[name] = v
 }
 
 func (p Program) Run(in io.Reader) {
@@ -89,7 +106,39 @@ func (p PatternAction) Exec() Status {
 }
 
 type FuncDecl struct {
-	name string
-	args []string
-	body Stmt
+	scope *FuncScope
+	name  string
+	args  []string
+	body  Stmt
+}
+
+type FuncScope struct {
+	stack []map[string]*value.Value
+}
+
+func (f *FuncScope) Push() {
+	f.stack = append(f.stack, make(map[string]*value.Value))
+}
+
+func (f *FuncScope) Pull() {
+	f.stack = f.stack[:len(f.stack)-1]
+}
+
+func (f *FuncScope) Var(name string) *value.Value {
+	v, ok := f.currScope()[name]
+	if !ok {
+		return new(value.Value)
+	}
+	return v
+}
+
+func (f *FuncScope) SetVar(name string, v *value.Value) {
+	f.currScope()[name] = v
+}
+
+func (f *FuncScope) currScope() map[string]*value.Value {
+	if f.stack == nil {
+		panic("stack shouldn't be nil")
+	}
+	return f.stack[len(f.stack)-1]
 }

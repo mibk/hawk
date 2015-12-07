@@ -39,13 +39,13 @@ func (b BlockStmt) Exec() Status {
 }
 
 type AssignStmt struct {
-	tree *Program
-	name string
-	expr Expr
+	scope Scope
+	name  string
+	expr  Expr
 }
 
 func (a AssignStmt) Exec() Status {
-	a.tree.vars[a.name] = a.expr.Eval()
+	a.scope.SetVar(a.name, a.expr.Eval())
 	return StatusNone
 }
 

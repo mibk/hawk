@@ -59,8 +59,14 @@ func (c CallExpr) Eval() *value.Value {
 			log.Fatalf("%s: %d != %d: argument count mismatch", c.fun,
 				len(fn.args), len(c.args))
 		}
+		args := make([]*value.Value, len(c.args))
+		for i := range c.args {
+			args[i] = c.args[i].Eval()
+		}
+		fn.scope.Push()
+		defer fn.scope.Pull()
 		for i, n := range fn.args {
-			ast.vars[n] = c.args[i].Eval()
+			fn.scope.SetVar(n, args[i])
 		}
 		fn.body.Exec()
 		if ast.retval != nil {
@@ -73,16 +79,12 @@ func (c CallExpr) Eval() *value.Value {
 }
 
 type Ident struct {
-	tree *Program
-	name string
+	scope Scope
+	name  string
 }
 
 func (i Ident) Eval() *value.Value {
-	v, ok := i.tree.vars[i.name]
-	if !ok {
-		return new(value.Value)
-	}
-	return v
+	return i.scope.Var(i.name)
 }
 
 type FieldExpr struct {

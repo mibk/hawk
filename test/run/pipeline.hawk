@@ -1,0 +1,9 @@
+BEGIN {
+	// echo is hopefully on Windows too.
+	print "ahoj" | "echo -n" | "echo -n"
+	if x == 3 {
+		print "yes"
+	} else {
+		print "no"
+	} | "echo -n"
+}

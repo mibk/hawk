@@ -35,7 +35,7 @@ var (
 %type <decllist> decllist
 %type <expr>     expr oexpr uexpr
 %type <exprlist> exprlist
-%type <stmt>     stmt ostmt ifstmt else if_or_block forstmt
+%type <stmt>     pipeline stmt ostmt ifstmt else if_or_block forstmt
 %type <stmtlist> stmtlist blockstmt
 
 %token <num> NUM
@@ -142,13 +142,23 @@ stmtlist:
 	{
 		$$ = nil
 	}
-|	stmt
+|	pipeline
 	{
 		$$ = []Stmt{$1}
 	}
-|	stmtlist ';' stmt
+|	stmtlist ';' pipeline
 	{
 		$$ = append($1, $3)
+	}
+
+pipeline:
+	stmt
+	{
+		$$ = $1
+	}
+|	pipeline '|' STRING
+	{
+		$$ = PipeStmt{$1, $3}
 	}
 
 stmt:
@@ -212,7 +222,7 @@ stmt:
 	}
 |	PRINT exprlist
 	{
-		$$ = CallStmt{parser.Writer, $1, $2}
+		$$ = CallStmt{$1, $2}
 	}
 
 ostmt:
@@ -367,11 +377,11 @@ uexpr:
 	}
 |	IDENT '(' ')'
 	{
-		$$ = CallExpr{parser.Writer, $1, nil}
+		$$ = CallExpr{$1, nil}
 	}
 |	IDENT '(' exprlist ocomma ')'
 	{
-		$$ = CallExpr{parser.Writer, $1, $3}
+		$$ = CallExpr{$1, $3}
 	}
 
 exprlist:
@@ -397,7 +407,7 @@ func Compile(r io.Reader, p *parse.Parser) (*Program, error) {
 	ast = NewProgram(p)
 	parser = p
 	defaultAction = BlockStmt{[]Stmt{
-		ExprStmt{CallExpr{parser.Writer, "print", []Expr{FieldExpr{parser, Lit(0)}}}},
+		ExprStmt{CallExpr{"print", []Expr{FieldExpr{parser, Lit(0)}}}},
 	}}
 	l := &yyLex{reader: bufio.NewReader(r), buf: new(bytes.Buffer)}
 	yyParse(l)

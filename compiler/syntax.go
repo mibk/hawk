@@ -48,7 +48,7 @@ func (p Program) SetVar(name string, v *value.Value) {
 }
 
 func (p Program) Run(in io.Reader) {
-	p.Begin()
+	p.Begin(p.parser.Writer)
 	if p.anyPatternActions() {
 		in := bufio.NewReader(in)
 		for {
@@ -57,21 +57,21 @@ func (p Program) Run(in io.Reader) {
 				break
 			}
 			p.parser.SetFields(strings.Fields(string(line)))
-			p.Exec()
+			p.Exec(p.parser.Writer)
 		}
-		p.End()
+		p.End(p.parser.Writer)
 	}
 }
 
-func (p Program) Begin() {
+func (p Program) Begin(w io.Writer) {
 	for _, a := range p.begin {
-		a.Exec()
+		a.Exec(w)
 	}
 }
 
-func (p Program) End() {
+func (p Program) End(w io.Writer) {
 	for _, a := range p.end {
-		a.Exec()
+		a.Exec(w)
 	}
 }
 
@@ -79,9 +79,9 @@ func (p Program) anyPatternActions() bool {
 	return len(p.pActions) > 0 || len(p.end) > 0
 }
 
-func (p Program) Exec() {
+func (p Program) Exec(w io.Writer) {
 	for _, a := range p.pActions {
-		a.Exec()
+		a.Exec(w)
 	}
 }
 
@@ -98,9 +98,9 @@ type PatternAction struct {
 	action  Stmt
 }
 
-func (p PatternAction) Exec() Status {
-	if p.pattern == nil || p.pattern.Eval().Bool() {
-		p.action.Exec()
+func (p PatternAction) Exec(w io.Writer) Status {
+	if p.pattern == nil || p.pattern.Eval(w).Bool() {
+		p.action.Exec(w)
 	}
 	return StatusNone
 }

@@ -22,6 +22,7 @@ func TestRun(t *testing.T) {
 }
 
 func run(t *testing.T, progname string) {
+	t.Logf("test %s", progname)
 	var out bytes.Buffer
 	p := parse.NewParser(&out)
 	f, err := os.Open(progname + ".hawk")

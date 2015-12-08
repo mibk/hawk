@@ -58,7 +58,7 @@ func (l *yyLex) Lex(yylval *yySymType) (tok int) {
 				return ';'
 			}
 			return 0
-		case ';', '{', '}', ',', '(', ')', '$':
+		case ';', '{', '}', ',', '(', ')', '$', '|':
 		case '?', ':':
 		case '=':
 			if l.peek() == '=' {

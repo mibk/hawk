@@ -6,4 +6,6 @@ BEGIN {
 	} else {
 		print "no"
 	} | "echo -n"
+
+	{} | "echo -n" // empty explicit block statement
 }

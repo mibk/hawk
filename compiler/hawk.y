@@ -156,6 +156,10 @@ pipeline:
 	{
 		$$ = $1
 	}
+|	blockstmt
+	{
+		$$ = BlockStmt{$1}
+	}
 |	pipeline '|' STRING
 	{
 		$$ = PipeStmt{$1, $3}

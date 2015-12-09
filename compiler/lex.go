@@ -61,78 +61,66 @@ func (l *yyLex) Lex(yylval *yySymType) (tok int) {
 		case ';', '{', '}', ',', '(', ')', '$', '|':
 		case '?', ':':
 		case '=':
-			if l.peek() == '=' {
-				l.next()
+			if l.accept('=') {
 				return EQ
 			}
 		case '!':
-			if l.peek() == '=' {
-				l.next()
+			if l.accept('=') {
 				return NE
 			}
 		case '<':
-			if l.peek() == '=' {
-				l.next()
+			if l.accept('=') {
 				return LE
 			}
 		case '>':
-			if l.peek() == '=' {
-				l.next()
+			if l.accept('=') {
 				return GE
 			}
 		case '+':
-			if l.peek() == '+' {
-				l.next()
+			if l.accept('+') {
 				return INC
-			} else if l.peek() == '=' {
-				l.next()
+			} else if l.accept('=') {
 				return ADDEQ
 			}
 		case '-':
-			if l.peek() == '-' {
-				l.next()
+			if l.accept('-') {
 				return DEC
-			} else if l.peek() == '=' {
-				l.next()
+			} else if l.accept('=') {
 				return SUBEQ
 			}
 		case '*':
-			if l.peek() == '=' {
-				l.next()
+			if l.accept('=') {
 				return MULEQ
 			}
 		case '/':
-			switch l.peek() {
+			switch l.next() {
 			case '=':
-				l.next()
 				return DIVEQ
 			case '/':
-				l.next()
 				for l.next() != '\n' {
 				}
 				l.backup()
 				continue // ignore oneline comment
 			case '*':
 				nl := false
-				l.next()
 				for {
 					r := l.next()
-					if r == '*' && l.peek() == '/' {
+					if r == '*' && l.accept('/') {
 						break
 					} else if nl == false && r == '\n' {
 						lexlineno--
 						nl = true
 					}
 				}
-				l.next()
 				if nl {
 					l.peeked = '\n'
 				}
 				continue // ignore block comment
+			default:
+				l.backup()
 			}
 		case '%':
-			if l.peek() == '=' {
-				l.next()
+			if l.accept('=') {
 				return MODEQ
 			}
 		case '"':
@@ -140,11 +128,9 @@ func (l *yyLex) Lex(yylval *yySymType) (tok int) {
 		case ' ', '\t', '\n', '\r':
 			continue // ignore whitespace
 		default:
-			if c == '&' && l.peek() == '&' {
-				l.next()
+			if c == '&' && l.accept('&') {
 				return ANDAND
-			} else if c == '|' && l.peek() == '|' {
-				l.next()
+			} else if c == '|' && l.accept('|') {
 				return OROR
 			}
 			l.Error(fmt.Sprintf("unrecognized character %q", c))
@@ -226,6 +212,14 @@ func (l *yyLex) next() (r rune) {
 	}
 	l.last = r
 	return r
+}
+
+func (l *yyLex) accept(r rune) bool {
+	if l.next() == r {
+		return true
+	}
+	l.backup()
+	return false
 }
 
 func (l *yyLex) peek() rune {

@@ -164,33 +164,40 @@ func (l *yyLex) lexIdent(yylval *yySymType) int {
 		l.buf.WriteRune(l.last)
 	}
 	l.backup()
-	sym := l.buf.String()
-	switch sym {
-	case "BEGIN":
-		return BEGIN
-	case "END":
-		return END
-	case "if":
-		return IF
-	case "else":
-		return ELSE
-	case "for":
-		return FOR
-	case "break":
-		return BREAK
-	case "continue":
-		return CONTINUE
-	case "func":
-		return FUNC
-	case "return":
-		return RETURN
+	name := l.buf.String()
+	if tok, ok := isSymbol(name); ok {
+		return tok
 	}
-	yylval.sym = sym
-	switch sym {
+	yylval.sym = name
+	switch name {
 	case "print":
 		return PRINT
 	}
 	return IDENT
+}
+
+func isSymbol(name string) (int, bool) {
+	for _, sym := range symbols {
+		if sym.name == name {
+			return sym.tok, true
+		}
+	}
+	return 0, false
+}
+
+var symbols = []struct {
+	name string
+	tok  int
+}{
+	{"BEGIN", BEGIN},
+	{"END", END},
+	{"if", IF},
+	{"else", ELSE},
+	{"for", FOR},
+	{"break", BREAK},
+	{"continue", CONTINUE},
+	{"func", FUNC},
+	{"return", RETURN},
 }
 
 func (l *yyLex) lexString(yylval *yySymType) int {

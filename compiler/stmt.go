@@ -1,6 +1,7 @@
 package compiler
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os/exec"
@@ -146,9 +147,21 @@ func (r ReturnStmt) Exec(w io.Writer) Status {
 	return StatusReturn
 }
 
-type CallStmt CallExpr
+type PrintStmt struct {
+	fun  string
+	args []Expr
+}
 
-func (c CallStmt) Exec(w io.Writer) Status {
-	CallExpr(c).Eval(w)
+func (p PrintStmt) Exec(w io.Writer) Status {
+	switch p.fun {
+	case "print":
+		var vals []interface{}
+		for _, e := range p.args {
+			vals = append(vals, e.Eval(w))
+		}
+		fmt.Fprintln(w, vals...)
+	default:
+		panic("bad print function")
+	}
 	return StatusNone
 }

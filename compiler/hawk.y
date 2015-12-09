@@ -226,7 +226,7 @@ stmt:
 	}
 |	PRINT exprlist
 	{
-		$$ = CallStmt{$1, $2}
+		$$ = PrintStmt{$1, $2}
 	}
 
 ostmt:

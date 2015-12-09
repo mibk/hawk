@@ -29,7 +29,7 @@ func walkStmt(stmt Stmt, scope Scope) {
 		walkStmt(s.body, scope)
 	case ReturnStmt:
 		walkExpr(s.expr, scope)
-	case CallStmt:
+	case PrintStmt:
 		for _, e := range s.args {
 			walkExpr(e, scope)
 		}

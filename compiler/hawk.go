@@ -857,7 +857,7 @@ yydefault:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line hawk.y:228
 		{
-			yyVAL.stmt = CallStmt{yyDollar[1].sym, yyDollar[2].exprlist}
+			yyVAL.stmt = PrintStmt{yyDollar[1].sym, yyDollar[2].exprlist}
 		}
 	case 36:
 		yyDollar = yyS[yypt-0 : yypt+1]

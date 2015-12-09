@@ -1,7 +1,6 @@
 package compiler
 
 import (
-	"fmt"
 	"io"
 	"log"
 
@@ -42,12 +41,6 @@ func (c CallExpr) Eval(w io.Writer) *value.Value {
 			f += e.Eval(w).Float64()
 		}
 		return value.NewNumber(f)
-	case "print":
-		var vals []interface{}
-		for _, e := range c.args {
-			vals = append(vals, e.Eval(w))
-		}
-		fmt.Fprintln(w, vals...)
 	default:
 		// TODO: Get rid of log.Fatalf
 		fn, ok := ast.funcs[c.fun]

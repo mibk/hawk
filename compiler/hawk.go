@@ -124,6 +124,8 @@ func Compile(r io.Reader, p *parse.Parser) (*Program, error) {
 	defaultAction = BlockStmt{[]Stmt{
 		ExprStmt{CallExpr{"print", []Expr{FieldExpr{parser, Lit(0)}}}},
 	}}
+	lexlineno = 1
+	nlsemi = false
 	l := &yyLex{reader: bufio.NewReader(r), buf: new(bytes.Buffer)}
 	yyParse(l)
 	analyse(ast)

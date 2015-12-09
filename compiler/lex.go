@@ -23,7 +23,7 @@ type yyLex struct {
 const eof = -1
 
 var (
-	lexlineno = 1
+	lexlineno int
 	nlsemi    bool
 )
 
@@ -251,7 +251,7 @@ func (l *yyLex) backup() {
 
 func (l *yyLex) Error(s string) {
 	if l.err == nil {
-		l.err = fmt.Errorf("%d: %s\n", lexlineno, s)
+		l.err = fmt.Errorf("%d: %s", lexlineno, s)
 	}
 }
 

@@ -16,7 +16,6 @@ func TestRun(t *testing.T) {
 	for _, fi := range fis {
 		if !fi.IsDir() && strings.HasSuffix(fi.Name(), ".hawk") {
 			run(t, strings.TrimSuffix(fi.Name(), ".hawk"))
-
 		}
 	}
 }

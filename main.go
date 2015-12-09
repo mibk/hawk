@@ -23,7 +23,7 @@ func main() {
 	prog, err := compiler.Compile(src, p)
 	src.Close()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "hawk: %s:%v", name, err)
+		fmt.Fprintf(os.Stderr, "hawk: %s:%v\n", name, err)
 		os.Exit(1)
 	}
 	prog.Run(os.Stdin)

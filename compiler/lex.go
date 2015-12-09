@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strconv"
 	"unicode"
+	"unicode/utf8"
 )
 
 type yyLex struct {
@@ -44,13 +45,13 @@ func (l *yyLex) Lex(yylval *yySymType) (tok int) {
 			nlsemi = false
 			return ';'
 		}
-		c := l.next()
-		if unicode.IsDigit(c) {
+		r := l.next()
+		if unicode.IsDigit(r) {
 			return l.lexNum(yylval)
-		} else if unicode.IsLetter(c) {
+		} else if r >= utf8.RuneSelf || isLetter(r) {
 			return l.lexIdent(yylval)
 		}
-		switch c {
+		switch r {
 		case eof:
 			if nlsemi {
 				// Treat EOF as \n.
@@ -58,6 +59,8 @@ func (l *yyLex) Lex(yylval *yySymType) (tok int) {
 				return ';'
 			}
 			return 0
+		case '_':
+			return l.lexIdent(yylval)
 		case ';', '{', '}', ',', '(', ')', '$', '|':
 		case '?', ':':
 		case '=':
@@ -128,14 +131,14 @@ func (l *yyLex) Lex(yylval *yySymType) (tok int) {
 		case ' ', '\t', '\n', '\r':
 			continue // ignore whitespace
 		default:
-			if c == '&' && l.accept('&') {
+			if r == '&' && l.accept('&') {
 				return ANDAND
-			} else if c == '|' && l.accept('|') {
+			} else if r == '|' && l.accept('|') {
 				return OROR
 			}
-			l.Error(fmt.Sprintf("unrecognized character %q", c))
+			l.Error(fmt.Sprintf("unrecognized character %q", r))
 		}
-		return int(c)
+		return int(r)
 	}
 }
 
@@ -153,7 +156,11 @@ func (l *yyLex) lexNum(yylval *yySymType) int {
 func (l *yyLex) lexIdent(yylval *yySymType) int {
 	l.buf.Reset()
 	l.buf.WriteRune(l.last)
-	for unicode.IsLetter(l.next()) {
+	for {
+		r := l.next()
+		if r < utf8.RuneSelf && !isLetter(r) && !isDigit(r) && r != '_' {
+			break
+		}
 		l.buf.WriteRune(l.last)
 	}
 	l.backup()
@@ -239,4 +246,12 @@ func (l *yyLex) Error(s string) {
 	if l.err == nil {
 		l.err = fmt.Errorf("%d: %s\n", lexlineno, s)
 	}
+}
+
+func isLetter(r rune) bool {
+	return r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z'
+}
+
+func isDigit(r rune) bool {
+	return r >= '0' && r <= '9'
 }

@@ -1,0 +1,15 @@
+BEGIN {
+	černá = "bíla"
+	bílá = "černá"
+
+	if černá != "černá" {
+		_černá = "černá"
+	}; if bílá != "bílá" { _00 = "bílá" }
+
+	if _černá != "černá" {
+		print "_černá: got", _černá, "want černá"
+	}
+	if _00 != "bílá" {
+		print "_00: got", _00, "want bílá"
+	}
+}

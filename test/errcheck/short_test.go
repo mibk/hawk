@@ -19,6 +19,7 @@ var valid = []struct {
 	{`x > 3`},
 	{`$1 > 3`},
 	{`{ print $0 }`},
+	{`{} // `},
 }
 
 func TestValid(t *testing.T) {
@@ -37,6 +38,8 @@ var testProgs = []struct {
 	{`BEGIN {
 	} BEGIN`, "2: syntax error: unexpected BEGIN, expecting ';'"},
 	{`BEGIN { 00 = 20 }`, "1: syntax error: unexpected '=', expecting '}'"},
+	{`/* `, "1: eof in block comment"},
+	{`" `, "1: eof in string literal"},
 }
 
 func TestErrors(t *testing.T) {

@@ -100,7 +100,11 @@ func (l *yyLex) Lex(yylval *yySymType) (tok int) {
 			case '=':
 				return DIVEQ
 			case '/':
-				for l.next() != '\n' {
+				for {
+					r := l.next()
+					if r == '\n' || r == eof {
+						break
+					}
 				}
 				l.backup()
 				continue // ignore oneline comment
@@ -108,7 +112,10 @@ func (l *yyLex) Lex(yylval *yySymType) (tok int) {
 				nl := false
 				for {
 					r := l.next()
-					if r == '*' && l.accept('/') {
+					if r == eof {
+						l.Error("eof in block comment")
+						return eof
+					} else if r == '*' && l.accept('/') {
 						break
 					} else if nl == false && r == '\n' {
 						lexlineno--
@@ -202,7 +209,15 @@ var symbols = []struct {
 
 func (l *yyLex) lexString(yylval *yySymType) int {
 	l.buf.Reset()
-	for l.next() != '"' {
+loop:
+	for {
+		switch l.next() {
+		case '"':
+			break loop
+		case eof:
+			l.Error("eof in string literal")
+			return eof
+		}
 		l.buf.WriteRune(l.last)
 	}
 	yylval.sym = l.buf.String()

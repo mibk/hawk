@@ -20,6 +20,8 @@ var valid = []struct {
 	{`$1 > 3`},
 	{`{ print $0 }`},
 	{`{} // `},
+	{`{ "\a\b\f\n\r\t\v\\\"'" }`},
+	{`{ '\a\b\f\n\r\t\v\\"\'' }`},
 }
 
 func TestValid(t *testing.T) {
@@ -40,6 +42,13 @@ var testProgs = []struct {
 	{`BEGIN { 00 = 20 }`, "1: syntax error: unexpected '=', expecting '}'"},
 	{`/* `, "1: eof in block comment"},
 	{`" `, "1: eof in string literal"},
+	{`' `, "1: eof in string literal"},
+	{`"
+		"`, "2: newline in string literal"},
+	{`'
+		'`, "2: newline in string literal"},
+	{`"\e"`, `1: unknown escape character \e`},
+	{`"\i"`, `1: unknown escape character \i`},
 }
 
 func TestErrors(t *testing.T) {

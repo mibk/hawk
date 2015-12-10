@@ -133,8 +133,8 @@ func (l *yyLex) Lex(yylval *yySymType) (tok int) {
 			if l.accept('=') {
 				return MODEQ
 			}
-		case '"':
-			return l.lexString(yylval)
+		case '"', '\'':
+			return l.lexString(r, yylval)
 		case ' ', '\t', '\n', '\r':
 			continue // ignore whitespace
 		default:
@@ -143,7 +143,7 @@ func (l *yyLex) Lex(yylval *yySymType) (tok int) {
 			} else if r == '|' && l.accept('|') {
 				return OROR
 			}
-			l.Error(fmt.Sprintf("unrecognized character %q", r))
+			l.Errorf("unrecognized character %q", r)
 		}
 		return int(r)
 	}
@@ -207,18 +207,44 @@ var symbols = []struct {
 	{"return", RETURN},
 }
 
-func (l *yyLex) lexString(yylval *yySymType) int {
+func (l *yyLex) lexString(quote rune, yylval *yySymType) int {
 	l.buf.Reset()
 loop:
 	for {
-		switch l.next() {
-		case '"':
-			break loop
+		r := l.next()
+		switch r {
 		case eof:
 			l.Error("eof in string literal")
 			return eof
+		case '\n':
+			l.Error("newline in string literal")
+		case '\\':
+			switch l.next() {
+			case 'a': // alert or bell
+				r = '\a'
+			case 'b': // backspace
+				r = '\b'
+			case 'f': // form feed
+				r = '\f'
+			case 'n': // line feed or newline
+				r = '\n'
+			case 'r': // carriage return
+				r = '\r'
+			case 't': // horizontal tab
+				r = '\t'
+			case 'v': // vertical tab
+				r = '\v'
+			case '\\': // backslash
+				r = '\\'
+			case quote: // " or '
+				r = quote
+			default:
+				l.Errorf("unknown escape character \\%c", l.last)
+			}
+		case quote:
+			break loop
 		}
-		l.buf.WriteRune(l.last)
+		l.buf.WriteRune(r)
 	}
 	yylval.sym = l.buf.String()
 	return STRING
@@ -268,6 +294,10 @@ func (l *yyLex) Error(s string) {
 	if l.err == nil {
 		l.err = fmt.Errorf("%d: %s", lexlineno, s)
 	}
+}
+
+func (l *yyLex) Errorf(format string, args ...interface{}) {
+	l.Error(fmt.Sprintf(format, args...))
 }
 
 func isLetter(r rune) bool {

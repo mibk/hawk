@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 
@@ -17,36 +17,61 @@ var (
 )
 
 func main() {
+	log.SetFlags(0)
+	log.SetPrefix("hawk: ")
+	flag.Usage = usage
 	flag.Parse()
-	p := parse.NewParser(os.Stdout)
-	name, src := getSource()
-	prog, err := compiler.Compile(src, p)
-	src.Close()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "hawk: %s:%v\n", name, err)
-		os.Exit(1)
-	}
-	prog.Run(os.Stdin)
-}
 
-func getSource() (name string, src io.ReadCloser) {
-	name = "line"
+	var srcCode io.Reader
+	args := flag.Args()
+	name := "line"
 	if *file != "" {
 		f, err := os.Open(*file)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "hawk: %v\n", err)
+			log.Fatal(err)
 		}
-		src = f
 		name = *file
-	} else if len(os.Args) < 2 {
-		fmt.Println(`usage:
-	hawk <program>
-
-It is possible to write the program in a separate file and then call:
-	xargs -0 -a <program-file> hawk`)
-		os.Exit(2)
+		srcCode = f
+		defer f.Close()
 	} else {
-		src = ioutil.NopCloser(strings.NewReader(os.Args[1]))
+		if len(args) == 0 {
+			flag.Usage()
+			os.Exit(2)
+		}
+		srcCode = strings.NewReader(args[0])
+		args = args[1:]
 	}
-	return
+
+	var input io.Reader = os.Stdin
+	if len(args) > 0 {
+		rds := make([]io.Reader, 0, len(args))
+		for _, file := range args {
+			f, err := os.Open(file)
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer f.Close()
+			rds = append(rds, f)
+		}
+		input = io.MultiReader(rds...)
+	}
+
+	p := parse.NewParser(os.Stdout)
+	prog, err := compiler.Compile(srcCode, p)
+	if err != nil {
+		log.Fatalf("%s:%v\n", name, err)
+	}
+	prog.Run(input)
+}
+
+func usage() {
+	fmt.Fprintln(os.Stderr, `Usage: hawk 'program text' [file ...]
+  or:  hawk -f program-file [file ...]
+
+Hawk is an Awk clone. Program is a set of PATTERN { ACTION } pairs. Hawk reads
+from all of the present files and for each line of each file executes all the
+provided pairs. If no files are present, hawk reads from stdin.
+
+Flags:`)
+	flag.PrintDefaults()
 }

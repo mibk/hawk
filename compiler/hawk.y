@@ -411,7 +411,7 @@ func Compile(r io.Reader, p *parse.Parser) (*Program, error) {
 	ast = NewProgram(p)
 	parser = p
 	defaultAction = BlockStmt{[]Stmt{
-		ExprStmt{CallExpr{"print", []Expr{FieldExpr{parser, Lit(0)}}}},
+		PrintStmt{"print", []Expr{FieldExpr{parser, Lit(0)}}},
 	}}
 	lexlineno = 1
 	nlsemi = false

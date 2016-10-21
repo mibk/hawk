@@ -1,0 +1,6 @@
+hawk
+====
+
+This is my toy project. I've always been interested in parsers, languages, and so on,
+so I decided to make an Awk clone. You can have a look at test/run directory
+to see some examples of what is implemented in the language.

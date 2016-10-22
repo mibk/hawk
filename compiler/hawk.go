@@ -9,12 +9,12 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/mibk/hawk/parse"
+	"github.com/mibk/hawk/scan"
 )
 
 var (
-	parser *parse.Parser
-	ast    *Program
+	scanner *scan.Scanner
+	ast     *Program
 
 	defaultAction BlockStmt
 )
@@ -118,11 +118,11 @@ const yyInitialStackSize = 16
 
 //line hawk.y:408
 
-func Compile(r io.Reader, p *parse.Parser) (*Program, error) {
-	ast = NewProgram(p)
-	parser = p
+func Compile(r io.Reader, sc *scan.Scanner) (*Program, error) {
+	ast = NewProgram(sc)
+	scanner = sc
 	defaultAction = BlockStmt{[]Stmt{
-		PrintStmt{"print", []Expr{FieldExpr{parser, Lit(0)}}},
+		PrintStmt{"print", []Expr{FieldExpr{scanner, Lit(0)}}},
 	}}
 	lexlineno = 1
 	nlsemi = false
@@ -928,7 +928,7 @@ yydefault:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line hawk.y:287
 		{
-			yyVAL.expr = FieldExpr{parser, yyDollar[2].expr}
+			yyVAL.expr = FieldExpr{scanner, yyDollar[2].expr}
 		}
 	case 48:
 		yyDollar = yyS[yypt-3 : yypt+1]

@@ -6,11 +6,11 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/mibk/hawk/parse"
+	"github.com/mibk/hawk/scan"
 )
 
 var (
-	parser *parse.Parser
+	scanner *scan.Scanner
 	ast    *Program
 
 	defaultAction BlockStmt
@@ -285,7 +285,7 @@ expr:
 	}
 |	'$' uexpr
 	{
-		$$ = FieldExpr{parser, $2}
+		$$ = FieldExpr{scanner, $2}
 	}
 |	expr OROR expr
 	{
@@ -407,11 +407,11 @@ ocomma:
 
 %%
 
-func Compile(r io.Reader, p *parse.Parser) (*Program, error) {
-	ast = NewProgram(p)
-	parser = p
+func Compile(r io.Reader, sc *scan.Scanner) (*Program, error) {
+	ast = NewProgram(sc)
+	scanner = sc
 	defaultAction = BlockStmt{[]Stmt{
-		PrintStmt{"print", []Expr{FieldExpr{parser, Lit(0)}}},
+		PrintStmt{"print", []Expr{FieldExpr{scanner, Lit(0)}}},
 	}}
 	lexlineno = 1
 	nlsemi = false

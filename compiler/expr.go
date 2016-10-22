@@ -4,7 +4,7 @@ import (
 	"io"
 	"log"
 
-	"github.com/mibk/hawk/parse"
+	"github.com/mibk/hawk/scan"
 	"github.com/mibk/hawk/value"
 )
 
@@ -73,13 +73,13 @@ func (i Ident) Eval(io.Writer) *value.Value {
 }
 
 type FieldExpr struct {
-	p   *parse.Parser
+	sc  *scan.Scanner
 	num Expr
 }
 
 func (f FieldExpr) Eval(w io.Writer) *value.Value {
 	n := f.num.Eval(w).Int()
-	return value.NewString(f.p.Field(n))
+	return value.NewString(f.sc.Field(n))
 }
 
 type ExprOp int

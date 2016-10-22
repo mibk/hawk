@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"io"
 
-	"github.com/mibk/hawk/parse"
+	"github.com/mibk/hawk/scan"
 	"github.com/mibk/hawk/value"
 )
 
@@ -16,7 +16,7 @@ type Scope interface {
 }
 
 type Program struct {
-	parser   *parse.Parser
+	sc       *scan.Scanner
 	begin    []Stmt
 	pActions []Stmt
 	end      []Stmt
@@ -26,11 +26,11 @@ type Program struct {
 	retval *value.Value
 }
 
-func NewProgram(p *parse.Parser) *Program {
+func NewProgram(sc *scan.Scanner) *Program {
 	return &Program{
-		parser: p,
-		vars:   make(map[string]*value.Value),
-		funcs:  make(map[string]FuncDecl),
+		sc:    sc,
+		vars:  make(map[string]*value.Value),
+		funcs: make(map[string]FuncDecl),
 	}
 }
 
@@ -41,7 +41,7 @@ func (p Program) Var(name string) *value.Value {
 	// Global "magic" variables.
 	switch name {
 	case "NF":
-		return value.NewNumber(float64(p.parser.NF()))
+		return value.NewNumber(float64(p.sc.NF()))
 	}
 	return new(value.Value)
 }
@@ -51,7 +51,7 @@ func (p Program) SetVar(name string, v *value.Value) {
 }
 
 func (p Program) Run(in io.Reader) {
-	p.Begin(p.parser.Writer)
+	p.Begin(p.sc.Writer)
 	if p.anyPatternActions() {
 		in := bufio.NewReader(in)
 		for {
@@ -59,10 +59,10 @@ func (p Program) Run(in io.Reader) {
 			if err != nil {
 				break
 			}
-			p.parser.SplitLine(string(line))
-			p.Exec(p.parser.Writer)
+			p.sc.SplitLine(string(line))
+			p.Exec(p.sc.Writer)
 		}
-		p.End(p.parser.Writer)
+		p.End(p.sc.Writer)
 	}
 }
 

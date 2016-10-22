@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/mibk/hawk/compiler"
-	"github.com/mibk/hawk/parse"
+	"github.com/mibk/hawk/scan"
 )
 
 var (
@@ -56,8 +56,8 @@ func main() {
 		input = io.MultiReader(rds...)
 	}
 
-	p := parse.NewParser(os.Stdout)
-	prog, err := compiler.Compile(srcCode, p)
+	sc := scan.NewScanner(os.Stdout)
+	prog, err := compiler.Compile(srcCode, sc)
 	if err != nil {
 		log.Fatalf("%s:%v\n", name, err)
 	}

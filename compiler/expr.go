@@ -32,40 +32,33 @@ type CallExpr struct {
 
 func (c CallExpr) Eval(w io.Writer) *value.Value {
 	switch c.fun {
-	case "add":
-		// Add some ugly function just for the purpose to have one
-		// as print cannot be used as a func.
-		// TODO: remove this function.
-		f := .0
-		for _, e := range c.args {
-			f += e.Eval(w).Float64()
-		}
-		return value.NewNumber(f)
+	case "len":
+		vals := evalArgs(w, c.fun, 1, c.args)
+		return value.NewNumber(float64(vals[0].Len()))
+	}
 
-	default:
-		// Arithmetic functions:
-		if dcl, ok := aritFns[c.fun]; ok {
-			vals := evalArgs(w, c.fun, dcl.narg, c.args)
-			return dcl.fn(w, vals)
-		}
+	// Arithmetic functions:
+	if dcl, ok := aritFns[c.fun]; ok {
+		vals := evalArgs(w, c.fun, dcl.narg, c.args)
+		return dcl.fn(w, vals)
+	}
 
-		// TODO: Get rid of log.Fatalf
-		fn, ok := ast.funcs[c.fun]
-		if !ok {
-			log.Fatalf("unknown func %s", c.fun)
-		}
-		vals := evalArgs(w, c.fun, len(fn.args), c.args)
-		fn.scope.Push()
-		defer fn.scope.Pull()
-		for i, n := range fn.args {
-			fn.scope.SetVar(n, vals[i])
-		}
-		fn.body.Exec(w)
-		if ast.retval != nil {
-			v := ast.retval
-			ast.retval = nil
-			return v
-		}
+	// TODO: Get rid of log.Fatalf
+	fn, ok := ast.funcs[c.fun]
+	if !ok {
+		log.Fatalf("unknown func %s", c.fun)
+	}
+	vals := evalArgs(w, c.fun, len(fn.args), c.args)
+	fn.scope.Push()
+	defer fn.scope.Pull()
+	for i, n := range fn.args {
+		fn.scope.SetVar(n, vals[i])
+	}
+	fn.body.Exec(w)
+	if ast.retval != nil {
+		v := ast.retval
+		ast.retval = nil
+		return v
 	}
 	return value.NewBool(false)
 }

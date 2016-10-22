@@ -86,6 +86,14 @@ func (v *Value) String() string {
 	return "<unknown>"
 }
 
+func (v *Value) Len() int {
+	if v.typ == String {
+		return len(v.string)
+	}
+	// Handle other cases properly.
+	return 0
+}
+
 func (z *Value) Add(x, y *Value) *Value {
 	a, b := toFloat64(x, y)
 	z.typ = Number

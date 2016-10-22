@@ -1,6 +1,8 @@
 package value
 
 import (
+	"bytes"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -84,6 +86,54 @@ func (v *Value) String() string {
 		return "false"
 	}
 	return "<unknown>"
+}
+
+func (v *Value) Format(s fmt.State, verb rune) {
+	var val interface{}
+	switch verb {
+	case 'v':
+		fmt.Fprint(s, v.String())
+		return
+	// Boolean:
+	case 't':
+		val = v.Bool()
+	// Integer:
+	case 'b', 'c', 'd', 'o', 'U':
+		// TODO: %b is different for integer and float.
+		val = v.Int()
+	// Floating-point:
+	case 'e', 'E', 'f', 'F', 'g', 'G':
+		val = v.Float64()
+	// String:
+	case 's':
+		val = v.String()
+	// Common for String and Integer
+	case 'q', 'x', 'X':
+		if v.typ == String {
+			val = v.string
+		} else {
+			val = v.Int()
+		}
+	}
+	fmt.Fprintf(s, formatVerb(s, verb), val)
+}
+
+func formatVerb(s fmt.State, verb rune) string {
+	var buf bytes.Buffer
+	buf.WriteRune('%')
+	for _, c := range []int{' ', '0'} {
+		if s.Flag(c) {
+			buf.WriteRune(rune(c))
+		}
+	}
+	if wid, ok := s.Width(); ok {
+		fmt.Fprint(&buf, wid)
+	}
+	if prec, ok := s.Precision(); ok {
+		fmt.Fprintf(&buf, ".%d", prec)
+	}
+	buf.WriteRune(verb)
+	return buf.String()
 }
 
 func (v *Value) Len() int {

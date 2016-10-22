@@ -12,18 +12,21 @@ import (
 // A Scanner is used for splitting input into rows and
 // splitting rows into fields.
 type Scanner struct {
-	br     *bufio.Reader
-	line   string
-	fields []string
-	err    error // sticky err
+	br  *bufio.Reader
+	err error // sticky err
+
+	recNumber int
+	rec       string
+	fields    []string
 }
 
 // SetReader sets an io.Reader for scanner to read from.
 func (sc *Scanner) SetReader(r io.Reader) {
 	sc.br = bufio.NewReader(r)
+	sc.recNumber = 0
 }
 
-// Scan scans another row and parses it into fields. It there
+// Scan scans another record and parses it into fields. It there
 // is an error or EOF is reached, Scan returns false. Otherwise
 // it returns true.
 func (sc *Scanner) Scan() bool {
@@ -42,13 +45,14 @@ func (sc *Scanner) Scan() bool {
 		sc.err = err
 		return false
 	}
-	sc.splitLine(line)
+	sc.splitRecord(line)
+	sc.recNumber++
 	return true
 }
 
-func (sc *Scanner) splitLine(line []byte) {
-	sc.line = string(bytes.TrimRight(line, "\r\n"))
-	sc.fields = strings.Fields(sc.line)
+func (sc *Scanner) splitRecord(rec []byte) {
+	sc.rec = string(bytes.TrimRight(rec, "\r\n"))
+	sc.fields = strings.Fields(sc.rec)
 }
 
 func (sc *Scanner) Err() error {
@@ -61,11 +65,16 @@ func (sc *Scanner) Field(i int) string {
 	case i < 0:
 		log.Fatal("attempt to access field -1")
 	case i == 0:
-		return sc.line
+		return sc.rec
 	case i <= len(sc.fields):
 		return sc.fields[i-1]
 	}
 	return ""
+}
+
+// NR returns the current record number.
+func (sc *Scanner) NR() int {
+	return sc.recNumber
 }
 
 // NF returns number of fields of the current row.

@@ -1,0 +1,1 @@
+{ printf "%s:%s:%s\n", NR, NF, $1 }

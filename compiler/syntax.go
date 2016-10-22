@@ -39,6 +39,8 @@ func (p Program) Var(name string) *value.Value {
 	}
 	// Global "magic" variables.
 	switch name {
+	case "NR":
+		return value.NewNumber(float64(p.sc.NR()))
 	case "NF":
 		return value.NewNumber(float64(p.sc.NF()))
 	}

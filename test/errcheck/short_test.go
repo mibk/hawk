@@ -5,10 +5,7 @@ import (
 	"testing"
 
 	"github.com/mibk/hawk/compiler"
-	"github.com/mibk/hawk/scan"
 )
-
-var scanner = scan.NewScanner(nil)
 
 var valid = []struct {
 	prog string
@@ -26,7 +23,7 @@ var valid = []struct {
 func TestValid(t *testing.T) {
 	for i, tt := range valid {
 		b := strings.NewReader(tt.prog)
-		if _, err := compiler.Compile(b, scanner); err != nil {
+		if _, err := compiler.Compile(b); err != nil {
 			t.Errorf("test %d: unexpected err: %v", i+1, err)
 		}
 	}
@@ -53,7 +50,7 @@ var testProgs = []struct {
 func TestErrors(t *testing.T) {
 	for i, tt := range testProgs {
 		b := strings.NewReader(tt.prog)
-		_, err := compiler.Compile(b, scanner)
+		_, err := compiler.Compile(b)
 		if err == nil {
 			t.Errorf("%d: test unexpectedly succeded", i+1)
 			continue

@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/mibk/hawk/compiler"
-	"github.com/mibk/hawk/scan"
 )
 
 func TestRun(t *testing.T) {
@@ -17,20 +16,21 @@ func TestRun(t *testing.T) {
 		if !fi.IsDir() && strings.HasSuffix(fi.Name(), ".hawk") {
 			progname := strings.TrimSuffix(fi.Name(), ".hawk")
 			t.Run(progname, func(t *testing.T) {
-				var out bytes.Buffer
-				sc := scan.NewScanner(&out)
 				f, err := os.Open(progname + ".hawk")
 				if err != nil {
 					panic(err)
 				}
-				prog, err := compiler.Compile(f, sc)
+				prog, err := compiler.Compile(f)
 				if err != nil {
 					t.Errorf("%s.hawk:%v", progname, err)
 					return
 				}
 
+				var out bytes.Buffer
 				fin, _ := os.Open(progname + ".in")
-				prog.Run(fin)
+				if err := prog.Run(&out, fin); err != nil {
+					t.Errorf("unexpected err: %v", err)
+				}
 
 				var want []byte
 				fout, _ := os.Open(progname + ".out")

@@ -1,7 +1,6 @@
 package compiler
 
 import (
-	"bufio"
 	"io"
 
 	"github.com/mibk/hawk/scan"
@@ -50,20 +49,20 @@ func (p Program) SetVar(name string, v *value.Value) {
 	p.vars[name] = v
 }
 
-func (p Program) Run(in io.Reader) {
-	p.Begin(p.sc.Writer)
+func (p Program) Run(out io.Writer, in io.Reader) error {
+	p.Begin(out)
 	if p.anyPatternActions() {
-		in := bufio.NewReader(in)
-		for {
-			line, err := in.ReadBytes('\n')
-			if err != nil {
-				break
-			}
-			p.sc.SplitLine(string(line))
-			p.Exec(p.sc.Writer)
+		p.sc.SetReader(in)
+		for p.sc.Scan() {
+			p.Exec(out)
 		}
-		p.End(p.sc.Writer)
+		if err := p.sc.Err(); err != nil {
+			return err
+		}
+		p.End(out)
 	}
+	// TODO: return something like p.Err()
+	return nil
 }
 
 func (p Program) Begin(w io.Writer) {

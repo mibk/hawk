@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/mibk/hawk/compiler"
-	"github.com/mibk/hawk/scan"
 )
 
 var (
@@ -56,12 +55,13 @@ func main() {
 		input = io.MultiReader(rds...)
 	}
 
-	sc := scan.NewScanner(os.Stdout)
-	prog, err := compiler.Compile(srcCode, sc)
+	prog, err := compiler.Compile(srcCode)
 	if err != nil {
-		log.Fatalf("%s:%v\n", name, err)
+		log.Fatalf("%s:%v", name, err)
 	}
-	prog.Run(input)
+	if err := prog.Run(os.Stdout, input); err != nil {
+		log.Fatalf("executing: %v", err)
+	}
 }
 
 func usage() {

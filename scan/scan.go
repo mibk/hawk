@@ -1,26 +1,61 @@
 package scan
 
 import (
+	"bufio"
+	"bytes"
+	"errors"
 	"io"
 	"log"
 	"strings"
 )
 
+// A Scanner is used for splitting input into rows and
+// splitting rows into fields.
 type Scanner struct {
-	Writer io.Writer
+	br     *bufio.Reader
 	line   string
 	fields []string
+	err    error // sticky err
 }
 
-func NewScanner(w io.Writer) *Scanner {
-	return &Scanner{Writer: w}
+// SetReader sets an io.Reader for scanner to read from.
+func (sc *Scanner) SetReader(r io.Reader) {
+	sc.br = bufio.NewReader(r)
 }
 
-func (sc *Scanner) SplitLine(line string) {
-	sc.line = strings.TrimRight(line, "\r\n")
+// Scan scans another row and parses it into fields. It there
+// is an error or EOF is reached, Scan returns false. Otherwise
+// it returns true.
+func (sc *Scanner) Scan() bool {
+	if sc.err != nil {
+		return false
+	}
+	if sc.br == nil {
+		sc.err = errors.New("scan: nil reader")
+		return false
+	}
+
+	line, err := sc.br.ReadBytes('\n')
+	if err == io.EOF {
+		return false
+	} else if err != nil {
+		sc.err = err
+		return false
+	}
+	sc.splitLine(line)
+	return true
+}
+
+func (sc *Scanner) splitLine(line []byte) {
+	sc.line = string(bytes.TrimRight(line, "\r\n"))
 	sc.fields = strings.Fields(sc.line)
 }
 
+func (sc *Scanner) Err() error {
+	return sc.err
+}
+
+// Field returns ith field from the current row.
 func (sc *Scanner) Field(i int) string {
 	switch {
 	case i < 0:

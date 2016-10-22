@@ -17,7 +17,7 @@ type yyLex struct {
 	reader *bufio.Reader
 	last   rune
 	peeked rune
-	buf    *bytes.Buffer
+	buf    bytes.Buffer
 }
 
 const eof = -1

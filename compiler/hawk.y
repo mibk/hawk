@@ -3,7 +3,6 @@ package compiler
 
 import (
 	"bufio"
-	"bytes"
 	"io"
 
 	"github.com/mibk/hawk/scan"
@@ -15,7 +14,6 @@ var (
 
 	defaultAction BlockStmt
 )
-
 %}
 
 %union {
@@ -407,15 +405,17 @@ ocomma:
 
 %%
 
-func Compile(r io.Reader, sc *scan.Scanner) (*Program, error) {
-	ast = NewProgram(sc)
-	scanner = sc
+// Compile compiles a Hawk program from src. It is not safe
+// for concurrent use.
+func Compile(src io.Reader) (*Program, error) {
+	scanner = new(scan.Scanner)
 	defaultAction = BlockStmt{[]Stmt{
 		PrintStmt{"print", []Expr{FieldExpr{scanner, Lit(0)}}},
 	}}
+	ast = NewProgram(scanner)
 	lexlineno = 1
 	nlsemi = false
-	l := &yyLex{reader: bufio.NewReader(r), buf: new(bytes.Buffer)}
+	l := &yyLex{reader: bufio.NewReader(src)}
 	yyParse(l)
 	analyse(ast)
 	return ast, l.err

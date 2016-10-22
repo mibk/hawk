@@ -160,6 +160,17 @@ func (p PrintStmt) Exec(w io.Writer) Status {
 			vals = append(vals, e.Eval(w))
 		}
 		fmt.Fprintln(w, vals...)
+	case "printf":
+		if len(p.args) == 0 {
+			// TODO: Get rid of log.Fatalf
+			log.Fatalf("printf: not enough arguments: 0")
+		}
+		format, args := p.args[0], p.args[1:]
+		var vals []interface{}
+		for _, e := range args {
+			vals = append(vals, e.Eval(w))
+		}
+		fmt.Fprintf(w, format.Eval(w).String(), vals...)
 	default:
 		panic("bad print function")
 	}

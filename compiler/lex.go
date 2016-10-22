@@ -177,7 +177,7 @@ func (l *yyLex) lexIdent(yylval *yySymType) int {
 	}
 	yylval.sym = name
 	switch name {
-	case "print":
+	case "print", "printf":
 		return PRINT
 	}
 	return IDENT

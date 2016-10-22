@@ -1,0 +1,6 @@
+language: go
+sudo: false
+install:
+  - go get -t -v -d ./...
+go:
+  - 1.7

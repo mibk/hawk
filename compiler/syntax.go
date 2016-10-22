@@ -35,11 +35,15 @@ func NewProgram(p *parse.Parser) *Program {
 }
 
 func (p Program) Var(name string) *value.Value {
-	v, ok := p.vars[name]
-	if !ok {
-		return new(value.Value)
+	if v, ok := p.vars[name]; ok {
+		return v
 	}
-	return v
+	// Global "magic" variables.
+	switch name {
+	case "NF":
+		return value.NewNumber(float64(p.parser.NF()))
+	}
+	return new(value.Value)
 }
 
 func (p Program) SetVar(name string, v *value.Value) {

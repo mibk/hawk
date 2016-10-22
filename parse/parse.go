@@ -32,3 +32,8 @@ func (p *Parser) Field(i int) string {
 	}
 	return ""
 }
+
+// NF returns number of fields of the current row.
+func (p *Parser) NF() int {
+	return len(p.fields)
+}

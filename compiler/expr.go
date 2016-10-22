@@ -41,24 +41,24 @@ func (c CallExpr) Eval(w io.Writer) *value.Value {
 			f += e.Eval(w).Float64()
 		}
 		return value.NewNumber(f)
+
 	default:
+		// Arithmetic functions:
+		if dcl, ok := aritFns[c.fun]; ok {
+			vals := evalArgs(w, c.fun, dcl.narg, c.args)
+			return dcl.fn(w, vals)
+		}
+
 		// TODO: Get rid of log.Fatalf
 		fn, ok := ast.funcs[c.fun]
 		if !ok {
 			log.Fatalf("unknown func %s", c.fun)
 		}
-		if len(fn.args) != len(c.args) {
-			log.Fatalf("%s: %d != %d: argument count mismatch", c.fun,
-				len(fn.args), len(c.args))
-		}
-		args := make([]*value.Value, len(c.args))
-		for i := range c.args {
-			args[i] = c.args[i].Eval(w)
-		}
+		vals := evalArgs(w, c.fun, len(fn.args), c.args)
 		fn.scope.Push()
 		defer fn.scope.Pull()
 		for i, n := range fn.args {
-			fn.scope.SetVar(n, args[i])
+			fn.scope.SetVar(n, vals[i])
 		}
 		fn.body.Exec(w)
 		if ast.retval != nil {

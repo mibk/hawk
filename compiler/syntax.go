@@ -3,7 +3,6 @@ package compiler
 import (
 	"bufio"
 	"io"
-	"strings"
 
 	"github.com/mibk/hawk/parse"
 	"github.com/mibk/hawk/value"
@@ -56,7 +55,7 @@ func (p Program) Run(in io.Reader) {
 			if err != nil {
 				break
 			}
-			p.parser.SetFields(strings.Fields(string(line)))
+			p.parser.SplitLine(string(line))
 			p.Exec(p.parser.Writer)
 		}
 		p.End(p.parser.Writer)

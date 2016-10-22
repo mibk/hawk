@@ -15,7 +15,7 @@ var (
 	scanner *scan.Scanner
 	ast     *Program
 
-	defaultAction BlockStmt
+	defaultAction *BlockStmt
 )
 
 //line hawk.y:19
@@ -121,8 +121,8 @@ const yyInitialStackSize = 16
 // for concurrent use.
 func Compile(src io.Reader) (*Program, error) {
 	scanner = new(scan.Scanner)
-	defaultAction = BlockStmt{[]Stmt{
-		PrintStmt{"print", []Expr{FieldExpr{scanner, Lit(0)}}},
+	defaultAction = &BlockStmt{[]Stmt{
+		&PrintStmt{"print", []Expr{&FieldExpr{scanner, Lit(0)}}},
 	}}
 	ast = NewProgram(scanner)
 	lexlineno = 1
@@ -642,13 +642,13 @@ yydefault:
 		{
 			for _, d := range yyDollar[1].decllist {
 				switch d := d.(type) {
-				case BeginAction:
+				case *BeginAction:
 					ast.begin = append(ast.begin, d)
-				case EndAction:
+				case *EndAction:
 					ast.end = append(ast.end, d)
-				case PatternAction:
+				case *PatternAction:
 					ast.pActions = append(ast.pActions, d)
-				case FuncDecl:
+				case *FuncDecl:
 					ast.funcs[d.name] = d
 				default:
 					panic("unreachable")
@@ -683,31 +683,31 @@ yydefault:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line hawk.y:98
 		{
-			yyVAL.decl = PatternAction{yyDollar[1].expr, BlockStmt{yyDollar[2].stmtlist}}
+			yyVAL.decl = &PatternAction{yyDollar[1].expr, &BlockStmt{yyDollar[2].stmtlist}}
 		}
 	case 7:
 		yyDollar = yyS[yypt-1 : yypt+1]
 		//line hawk.y:102
 		{
-			yyVAL.decl = PatternAction{yyDollar[1].expr, defaultAction}
+			yyVAL.decl = &PatternAction{yyDollar[1].expr, defaultAction}
 		}
 	case 8:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line hawk.y:106
 		{
-			yyVAL.decl = BeginAction{BlockStmt{yyDollar[2].stmtlist}}
+			yyVAL.decl = &BeginAction{&BlockStmt{yyDollar[2].stmtlist}}
 		}
 	case 9:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line hawk.y:110
 		{
-			yyVAL.decl = EndAction{BlockStmt{yyDollar[2].stmtlist}}
+			yyVAL.decl = &EndAction{&BlockStmt{yyDollar[2].stmtlist}}
 		}
 	case 10:
 		yyDollar = yyS[yypt-6 : yypt+1]
 		//line hawk.y:116
 		{
-			yyVAL.decl = FuncDecl{new(FuncScope), yyDollar[2].sym, yyDollar[4].symlist, BlockStmt{yyDollar[6].stmtlist}}
+			yyVAL.decl = &FuncDecl{&FuncScope{}, yyDollar[2].sym, yyDollar[4].symlist, &BlockStmt{yyDollar[6].stmtlist}}
 		}
 	case 11:
 		yyDollar = yyS[yypt-0 : yypt+1]
@@ -761,19 +761,19 @@ yydefault:
 		yyDollar = yyS[yypt-1 : yypt+1]
 		//line hawk.y:158
 		{
-			yyVAL.stmt = BlockStmt{yyDollar[1].stmtlist}
+			yyVAL.stmt = &BlockStmt{yyDollar[1].stmtlist}
 		}
 	case 20:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:162
 		{
-			yyVAL.stmt = PipeStmt{yyDollar[1].stmt, yyDollar[3].sym}
+			yyVAL.stmt = &PipeStmt{yyDollar[1].stmt, yyDollar[3].sym}
 		}
 	case 21:
 		yyDollar = yyS[yypt-1 : yypt+1]
 		//line hawk.y:168
 		{
-			yyVAL.stmt = ExprStmt{yyDollar[1].expr}
+			yyVAL.stmt = &ExprStmt{yyDollar[1].expr}
 		}
 	case 22:
 		yyDollar = yyS[yypt-3 : yypt+1]
@@ -785,43 +785,43 @@ yydefault:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:176
 		{
-			yyVAL.stmt = &AssignStmt{ast, yyDollar[1].sym, BinaryExpr{Add, &Ident{ast, yyDollar[1].sym}, yyDollar[3].expr}}
+			yyVAL.stmt = &AssignStmt{ast, yyDollar[1].sym, &BinaryExpr{Add, &Ident{ast, yyDollar[1].sym}, yyDollar[3].expr}}
 		}
 	case 24:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:180
 		{
-			yyVAL.stmt = &AssignStmt{ast, yyDollar[1].sym, BinaryExpr{Sub, &Ident{ast, yyDollar[1].sym}, yyDollar[3].expr}}
+			yyVAL.stmt = &AssignStmt{ast, yyDollar[1].sym, &BinaryExpr{Sub, &Ident{ast, yyDollar[1].sym}, yyDollar[3].expr}}
 		}
 	case 25:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:184
 		{
-			yyVAL.stmt = &AssignStmt{ast, yyDollar[1].sym, BinaryExpr{Mul, &Ident{ast, yyDollar[1].sym}, yyDollar[3].expr}}
+			yyVAL.stmt = &AssignStmt{ast, yyDollar[1].sym, &BinaryExpr{Mul, &Ident{ast, yyDollar[1].sym}, yyDollar[3].expr}}
 		}
 	case 26:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:188
 		{
-			yyVAL.stmt = &AssignStmt{ast, yyDollar[1].sym, BinaryExpr{Div, &Ident{ast, yyDollar[1].sym}, yyDollar[3].expr}}
+			yyVAL.stmt = &AssignStmt{ast, yyDollar[1].sym, &BinaryExpr{Div, &Ident{ast, yyDollar[1].sym}, yyDollar[3].expr}}
 		}
 	case 27:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:192
 		{
-			yyVAL.stmt = &AssignStmt{ast, yyDollar[1].sym, BinaryExpr{Mod, &Ident{ast, yyDollar[1].sym}, yyDollar[3].expr}}
+			yyVAL.stmt = &AssignStmt{ast, yyDollar[1].sym, &BinaryExpr{Mod, &Ident{ast, yyDollar[1].sym}, yyDollar[3].expr}}
 		}
 	case 28:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line hawk.y:198
 		{
-			yyVAL.stmt = &AssignStmt{ast, yyDollar[1].sym, BinaryExpr{Add, &Ident{ast, yyDollar[1].sym}, Lit(1)}}
+			yyVAL.stmt = &AssignStmt{ast, yyDollar[1].sym, &BinaryExpr{Add, &Ident{ast, yyDollar[1].sym}, Lit(1)}}
 		}
 	case 29:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line hawk.y:202
 		{
-			yyVAL.stmt = &AssignStmt{ast, yyDollar[1].sym, BinaryExpr{Sub, &Ident{ast, yyDollar[1].sym}, Lit(1)}}
+			yyVAL.stmt = &AssignStmt{ast, yyDollar[1].sym, &BinaryExpr{Sub, &Ident{ast, yyDollar[1].sym}, Lit(1)}}
 		}
 	case 30:
 		yyDollar = yyS[yypt-1 : yypt+1]
@@ -839,25 +839,25 @@ yydefault:
 		yyDollar = yyS[yypt-1 : yypt+1]
 		//line hawk.y:214
 		{
-			yyVAL.stmt = StatusStmt{StatusBreak}
+			yyVAL.stmt = &StatusStmt{StatusBreak}
 		}
 	case 33:
 		yyDollar = yyS[yypt-1 : yypt+1]
 		//line hawk.y:218
 		{
-			yyVAL.stmt = StatusStmt{StatusContinue}
+			yyVAL.stmt = &StatusStmt{StatusContinue}
 		}
 	case 34:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line hawk.y:222
 		{
-			yyVAL.stmt = ReturnStmt{ast, yyDollar[2].expr}
+			yyVAL.stmt = &ReturnStmt{ast, yyDollar[2].expr}
 		}
 	case 35:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line hawk.y:226
 		{
-			yyVAL.stmt = PrintStmt{yyDollar[1].sym, yyDollar[2].exprlist}
+			yyVAL.stmt = &PrintStmt{yyDollar[1].sym, yyDollar[2].exprlist}
 		}
 	case 36:
 		yyDollar = yyS[yypt-0 : yypt+1]
@@ -875,7 +875,7 @@ yydefault:
 		yyDollar = yyS[yypt-4 : yypt+1]
 		//line hawk.y:241
 		{
-			yyVAL.stmt = IfStmt{yyDollar[2].expr, BlockStmt{yyDollar[3].stmtlist}, yyDollar[4].stmt}
+			yyVAL.stmt = &IfStmt{yyDollar[2].expr, &BlockStmt{yyDollar[3].stmtlist}, yyDollar[4].stmt}
 		}
 	case 39:
 		yyDollar = yyS[yypt-0 : yypt+1]
@@ -899,19 +899,19 @@ yydefault:
 		yyDollar = yyS[yypt-1 : yypt+1]
 		//line hawk.y:260
 		{
-			yyVAL.stmt = BlockStmt{yyDollar[1].stmtlist}
+			yyVAL.stmt = &BlockStmt{yyDollar[1].stmtlist}
 		}
 	case 43:
 		yyDollar = yyS[yypt-7 : yypt+1]
 		//line hawk.y:266
 		{
-			yyVAL.stmt = ForStmt{yyDollar[2].stmt, yyDollar[4].expr, yyDollar[6].stmt, BlockStmt{yyDollar[7].stmtlist}}
+			yyVAL.stmt = &ForStmt{yyDollar[2].stmt, yyDollar[4].expr, yyDollar[6].stmt, &BlockStmt{yyDollar[7].stmtlist}}
 		}
 	case 44:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:270
 		{
-			yyVAL.stmt = ForStmt{nil, yyDollar[2].expr, nil, BlockStmt{yyDollar[3].stmtlist}}
+			yyVAL.stmt = &ForStmt{nil, yyDollar[2].expr, nil, &BlockStmt{yyDollar[3].stmtlist}}
 		}
 	case 45:
 		yyDollar = yyS[yypt-1 : yypt+1]
@@ -923,91 +923,91 @@ yydefault:
 		yyDollar = yyS[yypt-5 : yypt+1]
 		//line hawk.y:281
 		{
-			yyVAL.expr = TernaryExpr{yyDollar[1].expr, yyDollar[3].expr, yyDollar[5].expr}
+			yyVAL.expr = &TernaryExpr{yyDollar[1].expr, yyDollar[3].expr, yyDollar[5].expr}
 		}
 	case 47:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line hawk.y:285
 		{
-			yyVAL.expr = FieldExpr{scanner, yyDollar[2].expr}
+			yyVAL.expr = &FieldExpr{scanner, yyDollar[2].expr}
 		}
 	case 48:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:289
 		{
-			yyVAL.expr = BinaryExpr{OrOr, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = &BinaryExpr{OrOr, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 49:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:293
 		{
-			yyVAL.expr = BinaryExpr{AndAnd, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = &BinaryExpr{AndAnd, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 50:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:297
 		{
-			yyVAL.expr = BinaryExpr{Eq, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = &BinaryExpr{Eq, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 51:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:301
 		{
-			yyVAL.expr = BinaryExpr{NotEq, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = &BinaryExpr{NotEq, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 52:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:305
 		{
-			yyVAL.expr = BinaryExpr{LtEq, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = &BinaryExpr{LtEq, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 53:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:309
 		{
-			yyVAL.expr = BinaryExpr{GtEq, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = &BinaryExpr{GtEq, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 54:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:313
 		{
-			yyVAL.expr = BinaryExpr{Lt, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = &BinaryExpr{Lt, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 55:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:317
 		{
-			yyVAL.expr = BinaryExpr{Gt, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = &BinaryExpr{Gt, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 56:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:321
 		{
-			yyVAL.expr = BinaryExpr{Add, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = &BinaryExpr{Add, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 57:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:325
 		{
-			yyVAL.expr = BinaryExpr{Sub, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = &BinaryExpr{Sub, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 58:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:329
 		{
-			yyVAL.expr = BinaryExpr{Mul, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = &BinaryExpr{Mul, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 59:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:333
 		{
-			yyVAL.expr = BinaryExpr{Div, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = &BinaryExpr{Div, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 60:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:337
 		{
-			yyVAL.expr = BinaryExpr{Mod, yyDollar[1].expr, yyDollar[3].expr}
+			yyVAL.expr = &BinaryExpr{Mod, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 61:
 		yyDollar = yyS[yypt-0 : yypt+1]
@@ -1043,13 +1043,13 @@ yydefault:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line hawk.y:365
 		{
-			yyVAL.expr = UnaryExpr{Minus, yyDollar[2].expr}
+			yyVAL.expr = &UnaryExpr{Minus, yyDollar[2].expr}
 		}
 	case 67:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line hawk.y:369
 		{
-			yyVAL.expr = UnaryExpr{Not, yyDollar[2].expr}
+			yyVAL.expr = &UnaryExpr{Not, yyDollar[2].expr}
 		}
 	case 68:
 		yyDollar = yyS[yypt-3 : yypt+1]
@@ -1067,13 +1067,13 @@ yydefault:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line hawk.y:381
 		{
-			yyVAL.expr = CallExpr{yyDollar[1].sym, nil}
+			yyVAL.expr = &CallExpr{yyDollar[1].sym, nil}
 		}
 	case 71:
 		yyDollar = yyS[yypt-5 : yypt+1]
 		//line hawk.y:385
 		{
-			yyVAL.expr = CallExpr{yyDollar[1].sym, yyDollar[3].exprlist}
+			yyVAL.expr = &CallExpr{yyDollar[1].sym, yyDollar[3].exprlist}
 		}
 	case 72:
 		yyDollar = yyS[yypt-1 : yypt+1]

@@ -18,7 +18,7 @@ type TernaryExpr struct {
 	no   Expr
 }
 
-func (t TernaryExpr) Eval(w io.Writer) *value.Value {
+func (t *TernaryExpr) Eval(w io.Writer) *value.Value {
 	if t.cond.Eval(w).Bool() {
 		return t.yes.Eval(w)
 	}
@@ -30,7 +30,7 @@ type CallExpr struct {
 	args []Expr
 }
 
-func (c CallExpr) Eval(w io.Writer) *value.Value {
+func (c *CallExpr) Eval(w io.Writer) *value.Value {
 	switch c.fun {
 	case "len":
 		vals := evalArgs(w, c.fun, 1, c.args)
@@ -68,7 +68,7 @@ type Ident struct {
 	name  string
 }
 
-func (i Ident) Eval(io.Writer) *value.Value {
+func (i *Ident) Eval(io.Writer) *value.Value {
 	return i.scope.Var(i.name)
 }
 
@@ -77,7 +77,7 @@ type FieldExpr struct {
 	num Expr
 }
 
-func (f FieldExpr) Eval(w io.Writer) *value.Value {
+func (f *FieldExpr) Eval(w io.Writer) *value.Value {
 	n := f.num.Eval(w).Int()
 	return value.NewString(f.sc.Field(n))
 }
@@ -111,7 +111,7 @@ type BinaryExpr struct {
 	right Expr
 }
 
-func (e BinaryExpr) Eval(w io.Writer) *value.Value {
+func (e *BinaryExpr) Eval(w io.Writer) *value.Value {
 	var z value.Value
 	switch e.op {
 	case Add, Sub, Mul, Div, Mod:
@@ -172,7 +172,7 @@ type UnaryExpr struct {
 	expr Expr
 }
 
-func (e UnaryExpr) Eval(w io.Writer) *value.Value {
+func (e *UnaryExpr) Eval(w io.Writer) *value.Value {
 	var z value.Value
 	switch e.op {
 	case Minus:

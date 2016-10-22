@@ -21,7 +21,7 @@ type Program struct {
 	end      []Stmt
 
 	vars   map[string]*value.Value
-	funcs  map[string]FuncDecl
+	funcs  map[string]*FuncDecl
 	retval *value.Value
 }
 
@@ -29,11 +29,11 @@ func NewProgram(sc *scan.Scanner) *Program {
 	return &Program{
 		sc:    sc,
 		vars:  make(map[string]*value.Value),
-		funcs: make(map[string]FuncDecl),
+		funcs: make(map[string]*FuncDecl),
 	}
 }
 
-func (p Program) Var(name string) *value.Value {
+func (p *Program) Var(name string) *value.Value {
 	if v, ok := p.vars[name]; ok {
 		return v
 	}
@@ -47,11 +47,11 @@ func (p Program) Var(name string) *value.Value {
 	return new(value.Value)
 }
 
-func (p Program) SetVar(name string, v *value.Value) {
+func (p *Program) SetVar(name string, v *value.Value) {
 	p.vars[name] = v
 }
 
-func (p Program) Run(out io.Writer, in io.Reader) error {
+func (p *Program) Run(out io.Writer, in io.Reader) error {
 	p.Begin(out)
 	if p.anyPatternActions() {
 		p.sc.SetReader(in)
@@ -67,23 +67,23 @@ func (p Program) Run(out io.Writer, in io.Reader) error {
 	return nil
 }
 
-func (p Program) Begin(w io.Writer) {
+func (p *Program) Begin(w io.Writer) {
 	for _, a := range p.begin {
 		a.Exec(w)
 	}
 }
 
-func (p Program) End(w io.Writer) {
+func (p *Program) End(w io.Writer) {
 	for _, a := range p.end {
 		a.Exec(w)
 	}
 }
 
-func (p Program) anyPatternActions() bool {
+func (p *Program) anyPatternActions() bool {
 	return len(p.pActions) > 0 || len(p.end) > 0
 }
 
-func (p Program) Exec(w io.Writer) {
+func (p *Program) Exec(w io.Writer) {
 	for _, a := range p.pActions {
 		a.Exec(w)
 	}
@@ -102,7 +102,7 @@ type PatternAction struct {
 	action  Stmt
 }
 
-func (p PatternAction) Exec(w io.Writer) Status {
+func (p *PatternAction) Exec(w io.Writer) Status {
 	if p.pattern == nil || p.pattern.Eval(w).Bool() {
 		p.action.Exec(w)
 	}

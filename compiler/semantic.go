@@ -11,25 +11,25 @@ func walkStmt(stmt Stmt, scope Scope) {
 		return
 	}
 	switch s := stmt.(type) {
-	case BlockStmt:
+	case *BlockStmt:
 		for _, s := range s.stmts {
 			walkStmt(s, scope)
 		}
 	case *AssignStmt:
 		s.scope = scope
 		walkExpr(s.expr, scope)
-	case IfStmt:
+	case *IfStmt:
 		walkExpr(s.expr, scope)
 		walkStmt(s.stmt, scope)
 		walkStmt(s.elseStmt, scope)
-	case ForStmt:
+	case *ForStmt:
 		walkStmt(s.init, scope)
 		walkExpr(s.cond, scope)
 		walkStmt(s.step, scope)
 		walkStmt(s.body, scope)
-	case ReturnStmt:
+	case *ReturnStmt:
 		walkExpr(s.expr, scope)
-	case PrintStmt:
+	case *PrintStmt:
 		for _, e := range s.args {
 			walkExpr(e, scope)
 		}
@@ -41,22 +41,22 @@ func walkExpr(expr Expr, scope Scope) {
 		return
 	}
 	switch e := expr.(type) {
-	case TernaryExpr:
+	case *TernaryExpr:
 		walkExpr(e.cond, scope)
 		walkExpr(e.yes, scope)
 		walkExpr(e.no, scope)
-	case CallExpr:
+	case *CallExpr:
 		for _, e := range e.args {
 			walkExpr(e, scope)
 		}
 	case *Ident:
 		e.scope = scope
-	case FieldExpr:
+	case *FieldExpr:
 		walkExpr(e.num, scope)
-	case BinaryExpr:
+	case *BinaryExpr:
 		walkExpr(e.left, scope)
 		walkExpr(e.right, scope)
-	case UnaryExpr:
+	case *UnaryExpr:
 		walkExpr(e.expr, scope)
 	}
 }

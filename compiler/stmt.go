@@ -25,7 +25,7 @@ type ExprStmt struct {
 	expr Expr
 }
 
-func (e ExprStmt) Exec(w io.Writer) Status {
+func (e *ExprStmt) Exec(w io.Writer) Status {
 	e.expr.Eval(w)
 	return StatusNone
 }
@@ -34,7 +34,7 @@ type BlockStmt struct {
 	stmts []Stmt
 }
 
-func (b BlockStmt) Exec(w io.Writer) Status {
+func (b *BlockStmt) Exec(w io.Writer) Status {
 	for _, stmt := range b.stmts {
 		switch s := stmt.Exec(w); s {
 		case StatusBreak, StatusReturn:
@@ -51,7 +51,7 @@ type PipeStmt struct {
 	cmd  string
 }
 
-func (p PipeStmt) Exec(w io.Writer) Status {
+func (p *PipeStmt) Exec(w io.Writer) Status {
 	// TODO: better method for argument parsing. (Arguments could be in quotes.)
 	args := strings.Fields(p.cmd)
 	if len(args) == 0 {
@@ -82,7 +82,7 @@ type AssignStmt struct {
 	expr  Expr
 }
 
-func (a AssignStmt) Exec(w io.Writer) Status {
+func (a *AssignStmt) Exec(w io.Writer) Status {
 	a.scope.SetVar(a.name, a.expr.Eval(w))
 	return StatusNone
 }
@@ -93,7 +93,7 @@ type IfStmt struct {
 	elseStmt Stmt
 }
 
-func (i IfStmt) Exec(w io.Writer) Status {
+func (i *IfStmt) Exec(w io.Writer) Status {
 	if i.expr.Eval(w).Bool() {
 		return i.stmt.Exec(w)
 	} else if i.elseStmt != nil {
@@ -109,7 +109,7 @@ type ForStmt struct {
 	body Stmt
 }
 
-func (f ForStmt) Exec(w io.Writer) Status {
+func (f *ForStmt) Exec(w io.Writer) Status {
 	if f.init != nil {
 		f.init.Exec(w)
 	}
@@ -131,7 +131,7 @@ type StatusStmt struct {
 	status Status
 }
 
-func (s StatusStmt) Exec(io.Writer) Status {
+func (s *StatusStmt) Exec(io.Writer) Status {
 	return s.status
 }
 
@@ -140,7 +140,7 @@ type ReturnStmt struct {
 	expr Expr
 }
 
-func (r ReturnStmt) Exec(w io.Writer) Status {
+func (r *ReturnStmt) Exec(w io.Writer) Status {
 	if r.expr != nil {
 		r.tree.retval = r.expr.Eval(w)
 	}
@@ -152,7 +152,7 @@ type PrintStmt struct {
 	args []Expr
 }
 
-func (p PrintStmt) Exec(w io.Writer) Status {
+func (p *PrintStmt) Exec(w io.Writer) Status {
 	switch p.fun {
 	case "print":
 		var vals []interface{}

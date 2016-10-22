@@ -12,7 +12,7 @@ var (
 	scanner *scan.Scanner
 	ast    *Program
 
-	defaultAction BlockStmt
+	defaultAction *BlockStmt
 )
 %}
 
@@ -59,13 +59,13 @@ top:
 	{
 		for _, d := range $1 {
 			switch d := d.(type) {
-			case BeginAction:
+			case *BeginAction:
 				ast.begin = append(ast.begin, d)
-			case EndAction:
+			case *EndAction:
 				ast.end = append(ast.end, d)
-			case PatternAction:
+			case *PatternAction:
 				ast.pActions = append(ast.pActions, d)
-			case FuncDecl:
+			case *FuncDecl:
 				ast.funcs[d.name] = d
 			default:
 				panic("unreachable")
@@ -96,25 +96,25 @@ decl:
 paction:
 	oexpr blockstmt
 	{
-		$$ = PatternAction{$1, BlockStmt{$2}}
+		$$ = &PatternAction{$1, &BlockStmt{$2}}
 	}
 |	expr
 	{
-		$$ = PatternAction{$1, defaultAction}
+		$$ = &PatternAction{$1, defaultAction}
 	}
 |	BEGIN blockstmt
 	{
-		$$ = BeginAction{BlockStmt{$2}}
+		$$ = &BeginAction{&BlockStmt{$2}}
 	}
 |	END blockstmt
 	{
-		$$ = EndAction{BlockStmt{$2}}
+		$$ = &EndAction{&BlockStmt{$2}}
 	}
 
 funcdecl:
 	FUNC IDENT '(' arglist ')' blockstmt
 	{
-		$$ = FuncDecl{new(FuncScope), $2, $4, BlockStmt{$6}}
+		$$ = &FuncDecl{&FuncScope{}, $2, $4, &BlockStmt{$6}}
 	}
 
 arglist:
@@ -156,17 +156,17 @@ pipeline:
 	}
 |	blockstmt
 	{
-		$$ = BlockStmt{$1}
+		$$ = &BlockStmt{$1}
 	}
 |	pipeline '|' STRING
 	{
-		$$ = PipeStmt{$1, $3}
+		$$ = &PipeStmt{$1, $3}
 	}
 
 stmt:
 	expr
 	{
-		$$ = ExprStmt{$1}
+		$$ = &ExprStmt{$1}
 	}
 |	IDENT '=' expr
 	{
@@ -174,33 +174,33 @@ stmt:
 	}
 |	IDENT ADDEQ expr
 	{
-		$$ = &AssignStmt{ast, $1, BinaryExpr{Add, &Ident{ast, $1}, $3}}
+		$$ = &AssignStmt{ast, $1, &BinaryExpr{Add, &Ident{ast, $1}, $3}}
 	}
 |	IDENT SUBEQ expr
 	{
-		$$ = &AssignStmt{ast, $1, BinaryExpr{Sub, &Ident{ast, $1}, $3}}
+		$$ = &AssignStmt{ast, $1, &BinaryExpr{Sub, &Ident{ast, $1}, $3}}
 	}
 |	IDENT MULEQ expr
 	{
-		$$ = &AssignStmt{ast, $1, BinaryExpr{Mul, &Ident{ast, $1}, $3}}
+		$$ = &AssignStmt{ast, $1, &BinaryExpr{Mul, &Ident{ast, $1}, $3}}
 	}
 |	IDENT DIVEQ expr
 	{
-		$$ = &AssignStmt{ast, $1, BinaryExpr{Div, &Ident{ast, $1}, $3}}
+		$$ = &AssignStmt{ast, $1, &BinaryExpr{Div, &Ident{ast, $1}, $3}}
 	}
 |	IDENT MODEQ expr
 	{
-		$$ = &AssignStmt{ast, $1, BinaryExpr{Mod, &Ident{ast, $1}, $3}}
+		$$ = &AssignStmt{ast, $1, &BinaryExpr{Mod, &Ident{ast, $1}, $3}}
 	}
 	// TODO: should rather be 'uexpr INC' and catch unwanted usage during
 	//	semantic analysis, but for now...
 |	IDENT INC
 	{
-		$$ = &AssignStmt{ast, $1, BinaryExpr{Add, &Ident{ast, $1}, Lit(1)}}
+		$$ = &AssignStmt{ast, $1, &BinaryExpr{Add, &Ident{ast, $1}, Lit(1)}}
 	}
 |	IDENT DEC
 	{
-		$$ = &AssignStmt{ast, $1, BinaryExpr{Sub, &Ident{ast, $1}, Lit(1)}}
+		$$ = &AssignStmt{ast, $1, &BinaryExpr{Sub, &Ident{ast, $1}, Lit(1)}}
 	}
 |	ifstmt
 	{
@@ -212,19 +212,19 @@ stmt:
 	}
 |	BREAK
 	{
-		$$ = StatusStmt{StatusBreak}
+		$$ = &StatusStmt{StatusBreak}
 	}
 |	CONTINUE
 	{
-		$$ = StatusStmt{StatusContinue}
+		$$ = &StatusStmt{StatusContinue}
 	}
 |	RETURN oexpr
 	{
-		$$ = ReturnStmt{ast, $2}
+		$$ = &ReturnStmt{ast, $2}
 	}
 |	PRINT exprlist
 	{
-		$$ = PrintStmt{$1, $2}
+		$$ = &PrintStmt{$1, $2}
 	}
 
 ostmt:
@@ -239,7 +239,7 @@ ostmt:
 ifstmt:
 	IF expr blockstmt else
 	{
-		$$ = IfStmt{$2, BlockStmt{$3}, $4}
+		$$ = &IfStmt{$2, &BlockStmt{$3}, $4}
 	}
 
 else:
@@ -258,17 +258,17 @@ if_or_block:
 	}
 |	blockstmt
 	{
-		$$ = BlockStmt{$1}
+		$$ = &BlockStmt{$1}
 	}
 
 forstmt:
 	FOR ostmt ';' oexpr ';' ostmt blockstmt
 	{
-		$$ = ForStmt{$2, $4, $6, BlockStmt{$7}}
+		$$ = &ForStmt{$2, $4, $6, &BlockStmt{$7}}
 	}
 |	FOR oexpr blockstmt
 	{
-		$$ = ForStmt{nil, $2, nil, BlockStmt{$3}}
+		$$ = &ForStmt{nil, $2, nil, &BlockStmt{$3}}
 	}
 
 
@@ -279,63 +279,63 @@ expr:
 	}
 |	expr '?' expr ':' expr
 	{
-		$$ = TernaryExpr{$1, $3, $5}
+		$$ = &TernaryExpr{$1, $3, $5}
 	}
 |	'$' uexpr
 	{
-		$$ = FieldExpr{scanner, $2}
+		$$ = &FieldExpr{scanner, $2}
 	}
 |	expr OROR expr
 	{
-		$$ = BinaryExpr{OrOr, $1, $3}
+		$$ = &BinaryExpr{OrOr, $1, $3}
 	}
 |	expr ANDAND expr
 	{
-		$$ = BinaryExpr{AndAnd, $1, $3}
+		$$ = &BinaryExpr{AndAnd, $1, $3}
 	}
 |	expr EQ expr
 	{
-		$$ = BinaryExpr{Eq, $1, $3}
+		$$ = &BinaryExpr{Eq, $1, $3}
 	}
 |	expr NE expr
 	{
-		$$ = BinaryExpr{NotEq, $1, $3}
+		$$ = &BinaryExpr{NotEq, $1, $3}
 	}
 |	expr LE expr
 	{
-		$$ = BinaryExpr{LtEq, $1, $3}
+		$$ = &BinaryExpr{LtEq, $1, $3}
 	}
 |	expr GE expr
 	{
-		$$ = BinaryExpr{GtEq, $1, $3}
+		$$ = &BinaryExpr{GtEq, $1, $3}
 	}
 |	expr '<' expr
 	{
-		$$ = BinaryExpr{Lt, $1, $3}
+		$$ = &BinaryExpr{Lt, $1, $3}
 	}
 |	expr '>' expr
 	{
-		$$ = BinaryExpr{Gt, $1, $3}
+		$$ = &BinaryExpr{Gt, $1, $3}
 	}
 |	expr '+' expr
 	{
-		$$ = BinaryExpr{Add, $1, $3}
+		$$ = &BinaryExpr{Add, $1, $3}
 	}
 |	expr '-' expr
 	{
-		$$ = BinaryExpr{Sub, $1, $3}
+		$$ = &BinaryExpr{Sub, $1, $3}
 	}
 |	expr '*' expr
 	{
-		$$ = BinaryExpr{Mul, $1, $3}
+		$$ = &BinaryExpr{Mul, $1, $3}
 	}
 |	expr '/' expr
 	{
-		$$ = BinaryExpr{Div, $1, $3}
+		$$ = &BinaryExpr{Div, $1, $3}
 	}
 |	expr '%' expr
 	{
-		$$ = BinaryExpr{Mod, $1, $3}
+		$$ = &BinaryExpr{Mod, $1, $3}
 	}
 
 oexpr:
@@ -363,11 +363,11 @@ uexpr:
 	}
 |	'-' uexpr
 	{
-		$$ = UnaryExpr{Minus, $2}
+		$$ = &UnaryExpr{Minus, $2}
 	}
 |	'!' uexpr
 	{
-		$$ = UnaryExpr{Not, $2}
+		$$ = &UnaryExpr{Not, $2}
 	}
 |	'(' expr ')'
 	{
@@ -379,11 +379,11 @@ uexpr:
 	}
 |	IDENT '(' ')'
 	{
-		$$ = CallExpr{$1, nil}
+		$$ = &CallExpr{$1, nil}
 	}
 |	IDENT '(' exprlist ocomma ')'
 	{
-		$$ = CallExpr{$1, $3}
+		$$ = &CallExpr{$1, $3}
 	}
 
 exprlist:
@@ -409,8 +409,8 @@ ocomma:
 // for concurrent use.
 func Compile(src io.Reader) (*Program, error) {
 	scanner = new(scan.Scanner)
-	defaultAction = BlockStmt{[]Stmt{
-		PrintStmt{"print", []Expr{FieldExpr{scanner, Lit(0)}}},
+	defaultAction = &BlockStmt{[]Stmt{
+		&PrintStmt{"print", []Expr{&FieldExpr{scanner, Lit(0)}}},
 	}}
 	ast = NewProgram(scanner)
 	lexlineno = 1

@@ -1,6 +1,7 @@
 package compiler
 
 import (
+	"fmt"
 	"io"
 	"log"
 
@@ -35,6 +36,13 @@ func (c *CallExpr) Eval(w io.Writer) *value.Value {
 	case "len":
 		vals := evalArgs(w, c.fun, 1, c.args)
 		return value.NewNumber(float64(vals[0].Len()))
+	case "sprintf":
+		format, vals, err := formatPrintfArgs(w, "sprintf", c.args)
+		if err != nil {
+			// TODO: Get rid of log.Fatal.
+			log.Fatal(err)
+		}
+		return value.NewString(fmt.Sprintf(format, vals...))
 	}
 
 	// Arithmetic functions:

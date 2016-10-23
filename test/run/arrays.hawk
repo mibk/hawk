@@ -4,4 +4,6 @@ BEGIN {
 	print arr[0], arr[2 - 1], arr[2], arr[3]
 	arr[0] = "Jan"
 	print arr[0]
+	arr[] = "April"
+	print arr[3]
 }

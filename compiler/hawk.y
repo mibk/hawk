@@ -172,6 +172,10 @@ stmt:
 	{
 		$$ = &AssignStmt{ast, &Ident{ast, $1}, $3}
 	}
+|	IDENT '[' ']' '=' expr
+	{
+		$$ = &AssignStmt{ast, &IndexExpr{&Ident{ast, $1}, nil}, $5}
+	}
 |	IDENT '[' expr ']' '=' expr
 	{
 		$$ = &AssignStmt{ast, &IndexExpr{&Ident{ast, $1}, $3}, $6}

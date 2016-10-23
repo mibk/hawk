@@ -24,10 +24,15 @@ func (a *Array) Put(k *Scalar, v Value) {
 			panic("not implemented yet")
 		}
 		k = NewNumber(float64(a.ai))
-	} else if k.typ != Number || k.number != float64(a.ai) {
-		a.associative = true
+		a.ai++
+	} else if !a.associative {
+		if _, ok := a.m[*k]; !ok {
+			a.ai++
+			if k.typ != Number || k.number != float64(a.ai) {
+				a.associative = true
+			}
+		}
 	}
-	a.ai++
 	a.keys = append(a.keys, k)
 	a.m[*k] = v
 }

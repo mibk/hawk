@@ -6,6 +6,8 @@ import (
 	"log"
 	"os/exec"
 	"strings"
+
+	"github.com/mibk/hawk/value"
 )
 
 type Status int
@@ -93,12 +95,15 @@ func (a *AssignStmt) Exec(w io.Writer) Status {
 			// TODO: Remove log.Fatal
 			log.Fatal("invalid operation; need array")
 		}
-		w, ok := e.index.Eval(w).Scalar()
-		if !ok {
-			// TODO: Remove log.Fatal
-			log.Fatal("invalid operation")
+		var index *value.Scalar
+		if e.index != nil {
+			index, ok = e.index.Eval(w).Scalar()
+			if !ok {
+				// TODO: Remove log.Fatal
+				log.Fatal("invalid operation")
+			}
 		}
-		a.Put(w, v)
+		a.Put(index, v)
 	default:
 		panic("unsupported assignment type")
 	}

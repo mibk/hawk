@@ -110,7 +110,7 @@ func (a *AssignStmt) Exec(w io.Writer) Status {
 
 type IfStmt struct {
 	expr     Expr
-	stmt     Stmt
+	stmt     *BlockStmt
 	elseStmt Stmt
 }
 
@@ -131,7 +131,7 @@ type ForStmt struct {
 	init Stmt
 	cond Expr
 	step Stmt
-	body Stmt
+	body *BlockStmt
 }
 
 func (f *ForStmt) Exec(w io.Writer) Status {

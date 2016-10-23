@@ -1,6 +1,7 @@
 package test
 
 import (
+	"io/ioutil"
 	"strings"
 	"testing"
 
@@ -57,6 +58,39 @@ func TestErrors(t *testing.T) {
 		}
 		if err.Error() != tt.err {
 			t.Errorf("test %d:\n got: %v\nwant: %v", i+1, err, tt.err)
+		}
+	}
+}
+
+// All programs are wrapped in 'BEGIN { }' before executing.
+var runtimeInvalid = []struct {
+	prog string
+	err  string
+}{
+	0: {`x = 0; x[0] = 2`, "assigning to a scalar value using index expression"},
+	1: {`a = []; if a {}`, "non-scalar value used as a condition"},
+	2: {`doesntexist()`, "unknown function: doesntexist"},
+	3: {`a = []; print $a`, "attempting to access a field using a non-scalar value"},
+	4: {`sin(a, b)`, "sin: 1 != 2: argument count mismatch"},
+	5: {`a = []; cos(a)`, "cos: all arguments must be scalar values"},
+	6: {`a = "scalar"; for x in a {}`, "attempting to range over a scalar value"},
+}
+
+func TestRuntimeErrors(t *testing.T) {
+	for i, tt := range runtimeInvalid {
+		b := strings.NewReader("BEGIN { " + tt.prog + " }")
+		prog, err := compiler.Compile(b)
+		if err != nil {
+			t.Errorf("test %d: unexpected err: %v", i, err)
+			continue
+		}
+		err = prog.Run(ioutil.Discard, nil)
+		if err == nil {
+			t.Errorf("%d: test unexpectedly succeded", i)
+			continue
+		}
+		if err.Error() != tt.err {
+			t.Errorf("test %d:\n got: %v\nwant: %v", i, err, tt.err)
 		}
 	}
 }

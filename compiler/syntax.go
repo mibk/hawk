@@ -1,8 +1,8 @@
 package compiler
 
 import (
+	"fmt"
 	"io"
-	"log"
 
 	"github.com/mibk/hawk/scan"
 	"github.com/mibk/hawk/value"
@@ -56,7 +56,14 @@ func (p *Program) SetVar(name string, v value.Value) {
 	p.vars[name] = v
 }
 
-func (p *Program) Run(out io.Writer, in scan.Source) error {
+func (p *Program) Run(out io.Writer, in scan.Source) (err error) {
+	defer func() {
+		if err == nil {
+			if v := recover(); v != nil {
+				err = fmt.Errorf("%v", v)
+			}
+		}
+	}()
 	p.Begin(out)
 	if p.anyPatternActions() {
 		p.sc.SetSource(in)
@@ -107,8 +114,7 @@ func (p *PatternAction) Exec(w io.Writer) Status {
 	if p.pattern != nil {
 		v, ok := p.pattern.Eval(w).Scalar()
 		if !ok {
-			// TODO: Remove log.Fatal
-			log.Fatal("invalid operation")
+			panic("pattern in an action must be a scalar value")
 		}
 		if !v.Bool() {
 			return StatusNone

@@ -61,7 +61,7 @@ func main() {
 		log.Fatalf("%s:%v", name, err)
 	}
 	if err := prog.Run(os.Stdout, input); err != nil {
-		log.Fatalf("executing: %v", err)
+		log.Fatal(err)
 	}
 }
 

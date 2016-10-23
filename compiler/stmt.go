@@ -3,7 +3,6 @@ package compiler
 import (
 	"fmt"
 	"io"
-	"log"
 	"os/exec"
 	"strings"
 
@@ -57,23 +56,24 @@ func (p *PipeStmt) Exec(w io.Writer) Status {
 	// TODO: better method for argument parsing. (Arguments could be in quotes.)
 	args := strings.Fields(p.cmd)
 	if len(args) == 0 {
-		log.Fatal("no command specified")
+		panic("pipe statement: no command specified")
 	}
-	cmd := exec.Command(args[0], args[1:]...)
+	name := args[0]
+	cmd := exec.Command(name, args[1:]...)
 	cmd.Stdout, cmd.Stderr = w, w
 	wc, err := cmd.StdinPipe()
 	if err != nil {
-		log.Fatal(err)
+		panic(fmt.Sprintf("%s: %v", name, err))
 	}
 	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
+		panic(fmt.Sprintf("%s: %v", name, err))
 	}
 	st := p.stmt.Exec(wc)
 	if err := wc.Close(); err != nil {
-		log.Fatal(err)
+		panic(fmt.Sprintf("%s: %v", name, err))
 	}
 	if err := cmd.Wait(); err != nil {
-		log.Fatal(err)
+		panic(fmt.Sprintf("%s: %v", name, err))
 	}
 	return st
 }
@@ -92,15 +92,13 @@ func (a *AssignStmt) Exec(w io.Writer) Status {
 	case *IndexExpr:
 		a, ok := e.expr.Eval(w).Array()
 		if !ok {
-			// TODO: Remove log.Fatal
-			log.Fatal("invalid operation; need array")
+			panic("assigning to a scalar value using index expression")
 		}
 		var index *value.Scalar
 		if e.index != nil {
 			index, ok = e.index.Eval(w).Scalar()
 			if !ok {
-				// TODO: Remove log.Fatal
-				log.Fatal("invalid operation")
+				panic("indexing an array using a non-scalar value")
 			}
 		}
 		a.Put(index, v)
@@ -119,8 +117,7 @@ type IfStmt struct {
 func (i *IfStmt) Exec(w io.Writer) Status {
 	v, ok := i.expr.Eval(w).Scalar()
 	if !ok {
-		// TODO: Remove log.Fatal
-		log.Fatal("invalid operation")
+		panic("non-scalar value used as a condition")
 	}
 	if v.Bool() {
 		return i.stmt.Exec(w)
@@ -145,8 +142,7 @@ func (f *ForStmt) Exec(w io.Writer) Status {
 		if f.cond != nil {
 			v, ok := f.cond.Eval(w).Scalar()
 			if !ok {
-				// TODO: Remove log.Fatal
-				log.Fatal("invalid operation")
+				panic("non-scalar value used as a condition")
 			}
 			if !v.Bool() {
 				break
@@ -175,8 +171,7 @@ type ForeachStmt struct {
 func (fs ForeachStmt) Exec(w io.Writer) Status {
 	a, ok := fs.expr.Eval(w).Array()
 	if !ok {
-		// TODO: Remove log.Fatal
-		log.Fatal("invalid operation; need array")
+		panic("attempting to range over a scalar value")
 	}
 	for _, k := range a.Keys() {
 		if fs.key != nil {
@@ -231,8 +226,7 @@ func (p *PrintStmt) Exec(w io.Writer) Status {
 	case "printf":
 		format, vals, err := formatPrintfArgs(w, "printf", p.args)
 		if err != nil {
-			// TODO: Get rid of log.Fatal.
-			log.Fatal(err)
+			panic(err)
 		}
 		fmt.Fprintf(w, format, vals...)
 	default:

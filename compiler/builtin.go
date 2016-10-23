@@ -1,8 +1,8 @@
 package compiler
 
 import (
+	"fmt"
 	"io"
-	"log"
 	"math"
 
 	"github.com/mibk/hawk/value"
@@ -10,8 +10,7 @@ import (
 
 func evalArgs(w io.Writer, fname string, nargs int, args []Expr) []value.Value {
 	if len(args) != nargs {
-		// TODO: Get rid of log.Fatalf
-		log.Fatalf("%s: %d != %d: argument count mismatch", fname, nargs, len(args))
+		panic(fmt.Sprintf("%s: %d != %d: argument count mismatch", fname, nargs, len(args)))
 	}
 	vals := make([]value.Value, len(args))
 	for i := range args {
@@ -22,16 +21,14 @@ func evalArgs(w io.Writer, fname string, nargs int, args []Expr) []value.Value {
 
 func convertArgsToScalars(w io.Writer, fname string, nargs int, args []Expr) []*value.Scalar {
 	if len(args) != nargs {
-		// TODO: Get rid of log.Fatalf
-		log.Fatalf("%s: %d != %d: argument count mismatch", fname, nargs, len(args))
+		panic(fmt.Sprintf("%s: %d != %d: argument count mismatch", fname, nargs, len(args)))
 	}
 	vals := make([]*value.Scalar, len(args))
 	for i := range args {
 		if v, ok := args[i].Eval(w).Scalar(); ok {
 			vals[i] = v
 		} else {
-			// TODO: Remove log.Fatalf and provide a better err message.
-			log.Fatal("unimplemented operation")
+			panic(fmt.Sprintf("%s: all arguments must be scalar values", fname))
 		}
 	}
 	return vals
@@ -39,7 +36,7 @@ func convertArgsToScalars(w io.Writer, fname string, nargs int, args []Expr) []*
 
 var aritFns = map[string]struct {
 	narg int
-	fn   func(io.Writer, []*value.Scalar) *value.Scalar
+	fn   func([]*value.Scalar) *value.Scalar
 }{
 	// Arithmetic functions:
 	"atan2": {2, atan2},
@@ -50,26 +47,26 @@ var aritFns = map[string]struct {
 	"sqrt":  {1, sqrt},
 }
 
-func atan2(w io.Writer, vals []*value.Scalar) *value.Scalar {
+func atan2(vals []*value.Scalar) *value.Scalar {
 	return value.NewNumber(math.Atan2(vals[0].Float64(), vals[1].Float64()))
 }
 
-func cos(w io.Writer, vals []*value.Scalar) *value.Scalar {
+func cos(vals []*value.Scalar) *value.Scalar {
 	return value.NewNumber(math.Cos(vals[0].Float64()))
 }
 
-func exp(w io.Writer, vals []*value.Scalar) *value.Scalar {
+func exp(vals []*value.Scalar) *value.Scalar {
 	return value.NewNumber(math.Exp(vals[0].Float64()))
 }
 
-func _log(w io.Writer, vals []*value.Scalar) *value.Scalar {
+func _log(vals []*value.Scalar) *value.Scalar {
 	return value.NewNumber(math.Log(vals[0].Float64()))
 }
 
-func sin(w io.Writer, vals []*value.Scalar) *value.Scalar {
+func sin(vals []*value.Scalar) *value.Scalar {
 	return value.NewNumber(math.Sin(vals[0].Float64()))
 }
 
-func sqrt(w io.Writer, vals []*value.Scalar) *value.Scalar {
+func sqrt(vals []*value.Scalar) *value.Scalar {
 	return value.NewNumber(math.Sqrt(vals[0].Float64()))
 }

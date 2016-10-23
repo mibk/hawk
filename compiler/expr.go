@@ -3,7 +3,6 @@ package compiler
 import (
 	"fmt"
 	"io"
-	"log"
 
 	"github.com/mibk/hawk/scan"
 	"github.com/mibk/hawk/value"
@@ -22,8 +21,7 @@ type TernaryExpr struct {
 func (t *TernaryExpr) Eval(w io.Writer) value.Value {
 	v, ok := t.cond.Eval(w).Scalar()
 	if !ok {
-		// TODO: Remove log.Fatal
-		log.Fatal("invalid operation")
+		panic("non-scalar value used as a condition")
 	}
 	if v.Bool() {
 		return t.yes.Eval(w)
@@ -44,8 +42,7 @@ func (c *CallExpr) Eval(w io.Writer) value.Value {
 	case "sprintf":
 		format, vals, err := formatPrintfArgs(w, "sprintf", c.args)
 		if err != nil {
-			// TODO: Get rid of log.Fatal.
-			log.Fatal(err)
+			panic(err)
 		}
 		return value.NewString(fmt.Sprintf(format, vals...))
 	}
@@ -53,13 +50,12 @@ func (c *CallExpr) Eval(w io.Writer) value.Value {
 	// Arithmetic functions:
 	if dcl, ok := aritFns[c.fun]; ok {
 		vals := convertArgsToScalars(w, c.fun, dcl.narg, c.args)
-		return dcl.fn(w, vals)
+		return dcl.fn(vals)
 	}
 
-	// TODO: Get rid of log.Fatalf
 	fn, ok := ast.funcs[c.fun]
 	if !ok {
-		log.Fatalf("unknown func %s", c.fun)
+		panic(fmt.Sprintf("unknown function: %s", c.fun))
 	}
 	vals := convertArgsToScalars(w, c.fun, len(fn.args), c.args)
 	fn.scope.Push()
@@ -93,8 +89,7 @@ type FieldExpr struct {
 func (f *FieldExpr) Eval(w io.Writer) value.Value {
 	v, ok := f.num.Eval(w).Scalar()
 	if !ok {
-		// TODO: Remove log.Fatalf
-		log.Fatal("invalid operation")
+		panic("attempting to access a field using a non-scalar value")
 	}
 	return value.NewString(f.sc.Field(v.Int()))
 }
@@ -107,13 +102,12 @@ type IndexExpr struct {
 func (ie *IndexExpr) Eval(w io.Writer) value.Value {
 	a, ok := ie.expr.Eval(w).Array()
 	if !ok {
-		// TODO: Remove log.Fatalf
-		log.Fatal("invalid operation; need array")
+		// TODO: This might be permitted e.g. for string.
+		panic("attempting to get an index of a scalar value")
 	}
 	index, ok := ie.index.Eval(w).Scalar()
 	if !ok {
-		// TODO: Remove log.Fatalf
-		log.Fatal("invalid operation")
+		panic("indexing an array using a non-scalar value")
 	}
 	v := a.Get(index)
 	if v == nil {
@@ -159,8 +153,7 @@ func (e *BinaryExpr) Eval(w io.Writer) value.Value {
 		l, ok := e.left.Eval(w).Scalar()
 		r, ok2 := e.right.Eval(w).Scalar()
 		if !ok && !ok2 {
-			// TODO: Remove log.Fatal
-			log.Fatal("invalid operation")
+			panic("unsupported type for binary expression")
 		}
 		switch e.op {
 		case Add:
@@ -179,8 +172,7 @@ func (e *BinaryExpr) Eval(w io.Writer) value.Value {
 	case OrOr, AndAnd:
 		lval, ok := e.left.Eval(w).Scalar()
 		if !ok {
-			// TODO: Remove log.Fatal
-			log.Fatal("invalid operation")
+			panic("unsupported type for binary expression")
 		}
 
 		if e.op == OrOr {
@@ -189,8 +181,7 @@ func (e *BinaryExpr) Eval(w io.Writer) value.Value {
 			}
 			rval, ok := e.right.Eval(w).Scalar()
 			if !ok {
-				// TODO: Remove log.Fatal
-				log.Fatal("invalid operation")
+				panic("unsupported type for binary expression")
 			}
 			return value.NewBool(rval.Bool())
 		}
@@ -199,8 +190,7 @@ func (e *BinaryExpr) Eval(w io.Writer) value.Value {
 		}
 		rval, ok := e.right.Eval(w).Scalar()
 		if !ok {
-			// TODO: Remove log.Fatal
-			log.Fatal("invalid operation")
+			panic("unsupported type for binary expression")
 		}
 		return value.NewBool(rval.Bool())
 	default:
@@ -235,8 +225,7 @@ type UnaryExpr struct {
 func (e *UnaryExpr) Eval(w io.Writer) value.Value {
 	v, ok := e.expr.Eval(w).Scalar()
 	if !ok {
-		// TODO: Remove log.Fatal
-		log.Fatal("invalid operation")
+		panic("unsupported type for unary expression")
 	}
 	var z value.Scalar
 	switch e.op {

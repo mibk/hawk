@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"io"
+	"log"
 
 	"github.com/mibk/hawk/scan"
 	"github.com/mibk/hawk/value"
@@ -10,8 +11,8 @@ import (
 type Decl interface{}
 
 type Scope interface {
-	Var(name string) *value.Value
-	SetVar(name string, v *value.Value)
+	Var(name string) value.Value
+	SetVar(name string, v value.Value)
 }
 
 type Program struct {
@@ -20,20 +21,20 @@ type Program struct {
 	pActions []Stmt
 	end      []Stmt
 
-	vars   map[string]*value.Value
+	vars   map[string]value.Value
 	funcs  map[string]*FuncDecl
-	retval *value.Value
+	retval value.Value
 }
 
 func NewProgram(sc *scan.Scanner) *Program {
 	return &Program{
 		sc:    sc,
-		vars:  make(map[string]*value.Value),
+		vars:  make(map[string]value.Value),
 		funcs: make(map[string]*FuncDecl),
 	}
 }
 
-func (p *Program) Var(name string) *value.Value {
+func (p *Program) Var(name string) value.Value {
 	if v, ok := p.vars[name]; ok {
 		return v
 	}
@@ -48,10 +49,10 @@ func (p *Program) Var(name string) *value.Value {
 	case "FNR":
 		return value.NewNumber(float64(p.sc.FileRecordNumber()))
 	}
-	return new(value.Value)
+	return new(value.Scalar)
 }
 
-func (p *Program) SetVar(name string, v *value.Value) {
+func (p *Program) SetVar(name string, v value.Value) {
 	p.vars[name] = v
 }
 
@@ -107,9 +108,17 @@ type PatternAction struct {
 }
 
 func (p *PatternAction) Exec(w io.Writer) Status {
-	if p.pattern == nil || p.pattern.Eval(w).Bool() {
-		p.action.Exec(w)
+	if p.pattern != nil {
+		v, ok := p.pattern.Eval(w).Scalar()
+		if !ok {
+			// TODO: Remove log.Fatal
+			log.Fatal("invalid operation")
+		}
+		if !v.Bool() {
+			return StatusNone
+		}
 	}
+	p.action.Exec(w)
 	return StatusNone
 }
 
@@ -121,30 +130,30 @@ type FuncDecl struct {
 }
 
 type FuncScope struct {
-	stack []map[string]*value.Value
+	stack []map[string]value.Value
 }
 
 func (f *FuncScope) Push() {
-	f.stack = append(f.stack, make(map[string]*value.Value))
+	f.stack = append(f.stack, make(map[string]value.Value))
 }
 
 func (f *FuncScope) Pull() {
 	f.stack = f.stack[:len(f.stack)-1]
 }
 
-func (f *FuncScope) Var(name string) *value.Value {
+func (f *FuncScope) Var(name string) value.Value {
 	v, ok := f.currScope()[name]
 	if !ok {
-		return new(value.Value)
+		return new(value.Scalar)
 	}
 	return v
 }
 
-func (f *FuncScope) SetVar(name string, v *value.Value) {
+func (f *FuncScope) SetVar(name string, v value.Value) {
 	f.currScope()[name] = v
 }
 
-func (f *FuncScope) currScope() map[string]*value.Value {
+func (f *FuncScope) currScope() map[string]value.Value {
 	if f.stack == nil {
 		panic("stack shouldn't be nil")
 	}

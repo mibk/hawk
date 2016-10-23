@@ -17,7 +17,8 @@ func walkStmt(stmt Stmt, scope Scope) {
 		}
 	case *AssignStmt:
 		s.scope = scope
-		walkExpr(s.expr, scope)
+		walkExpr(s.left, scope)
+		walkExpr(s.right, scope)
 	case *IfStmt:
 		walkExpr(s.expr, scope)
 		walkStmt(s.stmt, scope)

@@ -170,37 +170,41 @@ stmt:
 	}
 |	IDENT '=' expr
 	{
-		$$ = &AssignStmt{ast, $1, $3}
+		$$ = &AssignStmt{ast, &Ident{ast, $1}, $3}
+	}
+|	IDENT '[' expr ']' '=' expr
+	{
+		$$ = &AssignStmt{ast, &IndexExpr{&Ident{ast, $1}, $3}, $6}
 	}
 |	IDENT ADDEQ expr
 	{
-		$$ = &AssignStmt{ast, $1, &BinaryExpr{Add, &Ident{ast, $1}, $3}}
+		$$ = &AssignStmt{ast, &Ident{ast, $1}, &BinaryExpr{Add, &Ident{ast, $1}, $3}}
 	}
 |	IDENT SUBEQ expr
 	{
-		$$ = &AssignStmt{ast, $1, &BinaryExpr{Sub, &Ident{ast, $1}, $3}}
+		$$ = &AssignStmt{ast, &Ident{ast, $1}, &BinaryExpr{Sub, &Ident{ast, $1}, $3}}
 	}
 |	IDENT MULEQ expr
 	{
-		$$ = &AssignStmt{ast, $1, &BinaryExpr{Mul, &Ident{ast, $1}, $3}}
+		$$ = &AssignStmt{ast, &Ident{ast, $1}, &BinaryExpr{Mul, &Ident{ast, $1}, $3}}
 	}
 |	IDENT DIVEQ expr
 	{
-		$$ = &AssignStmt{ast, $1, &BinaryExpr{Div, &Ident{ast, $1}, $3}}
+		$$ = &AssignStmt{ast, &Ident{ast, $1}, &BinaryExpr{Div, &Ident{ast, $1}, $3}}
 	}
 |	IDENT MODEQ expr
 	{
-		$$ = &AssignStmt{ast, $1, &BinaryExpr{Mod, &Ident{ast, $1}, $3}}
+		$$ = &AssignStmt{ast, &Ident{ast, $1}, &BinaryExpr{Mod, &Ident{ast, $1}, $3}}
 	}
 	// TODO: should rather be 'uexpr INC' and catch unwanted usage during
 	//	semantic analysis, but for now...
 |	IDENT INC
 	{
-		$$ = &AssignStmt{ast, $1, &BinaryExpr{Add, &Ident{ast, $1}, Lit(1)}}
+		$$ = &AssignStmt{ast, &Ident{ast, $1}, &BinaryExpr{Add, &Ident{ast, $1}, Lit(1)}}
 	}
 |	IDENT DEC
 	{
-		$$ = &AssignStmt{ast, $1, &BinaryExpr{Sub, &Ident{ast, $1}, Lit(1)}}
+		$$ = &AssignStmt{ast, &Ident{ast, $1}, &BinaryExpr{Sub, &Ident{ast, $1}, Lit(1)}}
 	}
 |	ifstmt
 	{
@@ -384,6 +388,19 @@ uexpr:
 |	IDENT '(' exprlist ocomma ')'
 	{
 		$$ = &CallExpr{$1, $3}
+	}
+|	'[' ']'
+	{
+		$$ = &ArrayLit{}
+	}
+|	'[' exprlist ocomma ']'
+	{
+		$$ = &ArrayLit{$2}
+	}
+	// TODO: Allow more expr than just IDENT.
+|	IDENT '[' expr ']'
+	{
+		$$ = &IndexExpr{&Ident{ast, $1}, $3}
 	}
 
 exprlist:

@@ -78,12 +78,30 @@ func (p *PipeStmt) Exec(w io.Writer) Status {
 
 type AssignStmt struct {
 	scope Scope
-	name  string
-	expr  Expr
+	left  Expr
+	right Expr
 }
 
 func (a *AssignStmt) Exec(w io.Writer) Status {
-	a.scope.SetVar(a.name, a.expr.Eval(w))
+	v := a.right.Eval(w)
+	switch e := a.left.(type) {
+	case *Ident:
+		a.scope.SetVar(e.name, v)
+	case *IndexExpr:
+		a, ok := e.expr.Eval(w).Array()
+		if !ok {
+			// TODO: Remove log.Fatal
+			log.Fatal("invalid operation; need array")
+		}
+		w, ok := e.index.Eval(w).Scalar()
+		if !ok {
+			// TODO: Remove log.Fatal
+			log.Fatal("invalid operation")
+		}
+		a.Put(w, v)
+	default:
+		panic("unsupported assignment type")
+	}
 	return StatusNone
 }
 
@@ -94,7 +112,12 @@ type IfStmt struct {
 }
 
 func (i *IfStmt) Exec(w io.Writer) Status {
-	if i.expr.Eval(w).Bool() {
+	v, ok := i.expr.Eval(w).Scalar()
+	if !ok {
+		// TODO: Remove log.Fatal
+		log.Fatal("invalid operation")
+	}
+	if v.Bool() {
 		return i.stmt.Exec(w)
 	} else if i.elseStmt != nil {
 		return i.elseStmt.Exec(w)
@@ -113,7 +136,17 @@ func (f *ForStmt) Exec(w io.Writer) Status {
 	if f.init != nil {
 		f.init.Exec(w)
 	}
-	for f.cond == nil || f.cond.Eval(w).Bool() {
+	for {
+		if f.cond != nil {
+			v, ok := f.cond.Eval(w).Scalar()
+			if !ok {
+				// TODO: Remove log.Fatal
+				log.Fatal("invalid operation")
+			}
+			if !v.Bool() {
+				break
+			}
+		}
 		switch f.body.Exec(w) {
 		case StatusBreak:
 			break

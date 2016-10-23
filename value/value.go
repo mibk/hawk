@@ -13,36 +13,52 @@ const (
 	Number
 )
 
-type Value struct {
+type Value interface {
+	Scalar() (v *Scalar, ok bool)
+	Array() (a *Array, ok bool)
+	Cmp(Value) int
+	String() string
+	Len() int
+}
+
+type Scalar struct {
 	typ    int
 	string string
 	number float64
 }
 
-func NewNumber(f float64) *Value {
-	return &Value{Number, "", f}
+func NewNumber(f float64) *Scalar {
+	return &Scalar{Number, "", f}
 }
 
-func NewString(s string) *Value {
-	return &Value{String, s, 0}
+func NewString(s string) *Scalar {
+	return &Scalar{String, s, 0}
 }
 
-func NewBool(b bool) *Value {
+func NewBool(b bool) *Scalar {
 	n := .0
 	if b {
 		n = 1
 	}
-	return &Value{Bool, "", n}
+	return &Scalar{Bool, "", n}
 }
 
-func (v *Value) Cmp(b *Value) int {
-	if v.typ == b.typ {
-		return v.cmp(b)
+func (v *Scalar) Scalar() (w *Scalar, ok bool) { return v, true }
+func (v *Scalar) Array() (w *Array, ok bool)   { return nil, false }
+
+func (v *Scalar) Cmp(w Value) int {
+	v2, ok := w.Scalar()
+	if !ok {
+		// TODO: Fix case when the values are uncomparable.
+		return -1
 	}
-	return v.Number().cmp(b.Number())
+	if v.typ == v2.typ {
+		return v.cmp(v2)
+	}
+	return v.Number().cmp(v2.Number())
 }
 
-func (v *Value) cmp(b *Value) int {
+func (v *Scalar) cmp(b *Scalar) int {
 	switch v.typ {
 	case String:
 		return strings.Compare(v.string, b.string)
@@ -57,7 +73,7 @@ func (v *Value) cmp(b *Value) int {
 	panic("unreachable")
 }
 
-func (v *Value) Number() *Value {
+func (v *Scalar) Number() *Scalar {
 	switch v.typ {
 	case String:
 		v.number, _ = strconv.ParseFloat(v.string, 64)
@@ -66,14 +82,14 @@ func (v *Value) Number() *Value {
 	return v
 }
 
-func (v *Value) Float64() float64 { return v.Number().number }
-func (v *Value) Int() int         { return int(v.Number().number) }
+func (v *Scalar) Float64() float64 { return v.Number().number }
+func (v *Scalar) Int() int         { return int(v.Number().number) }
 
-func (v *Value) Bool() bool {
+func (v *Scalar) Bool() bool {
 	return v.Cmp(NewBool(true)) == 0
 }
 
-func (v *Value) String() string {
+func (v *Scalar) String() string {
 	switch v.typ {
 	case String:
 		return v.string
@@ -88,7 +104,7 @@ func (v *Value) String() string {
 	return "<unknown>"
 }
 
-func (v *Value) Format(s fmt.State, verb rune) {
+func (v *Scalar) Format(s fmt.State, verb rune) {
 	var val interface{}
 	switch verb {
 	case 'v':
@@ -136,7 +152,7 @@ func formatVerb(s fmt.State, verb rune) string {
 	return buf.String()
 }
 
-func (v *Value) Len() int {
+func (v *Scalar) Len() int {
 	if v.typ == String {
 		return len(v.string)
 	}
@@ -144,47 +160,47 @@ func (v *Value) Len() int {
 	return 0
 }
 
-func (z *Value) Add(x, y *Value) *Value {
+func (z *Scalar) Add(x, y *Scalar) *Scalar {
 	a, b := toFloat64(x, y)
 	z.typ = Number
 	z.number = a + b
 	return z
 }
 
-func (z *Value) Sub(x, y *Value) *Value {
+func (z *Scalar) Sub(x, y *Scalar) *Scalar {
 	a, b := toFloat64(x, y)
 	z.typ = Number
 	z.number = a - b
 	return z
 }
 
-func (z *Value) Mul(x, y *Value) *Value {
+func (z *Scalar) Mul(x, y *Scalar) *Scalar {
 	a, b := toFloat64(x, y)
 	z.typ = Number
 	z.number = a * b
 	return z
 }
 
-func (z *Value) Div(x, y *Value) *Value {
+func (z *Scalar) Div(x, y *Scalar) *Scalar {
 	a, b := toFloat64(x, y)
 	z.typ = Number
 	z.number = a / b // TODO: division by 0.
 	return z
 }
 
-func (z *Value) Mod(x, y *Value) *Value {
+func (z *Scalar) Mod(x, y *Scalar) *Scalar {
 	a, b := toFloat64(x, y)
 	z.typ = Number
 	z.number = float64(int(a) % int(b))
 	return z
 }
 
-func (z *Value) Neg(x *Value) *Value {
+func (z *Scalar) Neg(x *Scalar) *Scalar {
 	z.typ = Number
 	z.number = -x.Float64()
 	return z
 }
 
-func toFloat64(x, y *Value) (float64, float64) {
+func toFloat64(x, y *Scalar) (float64, float64) {
 	return x.Float64(), y.Float64()
 }

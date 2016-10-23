@@ -10,7 +10,7 @@ import (
 )
 
 type Expr interface {
-	Eval(io.Writer) *value.Value
+	Eval(io.Writer) value.Value
 }
 
 type TernaryExpr struct {
@@ -19,8 +19,13 @@ type TernaryExpr struct {
 	no   Expr
 }
 
-func (t *TernaryExpr) Eval(w io.Writer) *value.Value {
-	if t.cond.Eval(w).Bool() {
+func (t *TernaryExpr) Eval(w io.Writer) value.Value {
+	v, ok := t.cond.Eval(w).Scalar()
+	if !ok {
+		// TODO: Remove log.Fatal
+		log.Fatal("invalid operation")
+	}
+	if v.Bool() {
 		return t.yes.Eval(w)
 	}
 	return t.no.Eval(w)
@@ -31,7 +36,7 @@ type CallExpr struct {
 	args []Expr
 }
 
-func (c *CallExpr) Eval(w io.Writer) *value.Value {
+func (c *CallExpr) Eval(w io.Writer) value.Value {
 	switch c.fun {
 	case "len":
 		vals := evalArgs(w, c.fun, 1, c.args)
@@ -76,7 +81,7 @@ type Ident struct {
 	name  string
 }
 
-func (i *Ident) Eval(io.Writer) *value.Value {
+func (i *Ident) Eval(io.Writer) value.Value {
 	return i.scope.Var(i.name)
 }
 
@@ -85,9 +90,37 @@ type FieldExpr struct {
 	num Expr
 }
 
-func (f *FieldExpr) Eval(w io.Writer) *value.Value {
-	n := f.num.Eval(w).Int()
-	return value.NewString(f.sc.Field(n))
+func (f *FieldExpr) Eval(w io.Writer) value.Value {
+	v, ok := f.num.Eval(w).Scalar()
+	if !ok {
+		// TODO: Remove log.Fatalf
+		log.Fatal("invalid operation")
+	}
+	return value.NewString(f.sc.Field(v.Int()))
+}
+
+type IndexExpr struct {
+	expr  Expr
+	index Expr
+}
+
+func (ie *IndexExpr) Eval(w io.Writer) value.Value {
+	a, ok := ie.expr.Eval(w).Array()
+	if !ok {
+		// TODO: Remove log.Fatalf
+		log.Fatal("invalid operation; need array")
+	}
+	index, ok := ie.index.Eval(w).Scalar()
+	if !ok {
+		// TODO: Remove log.Fatalf
+		log.Fatal("invalid operation")
+	}
+	v := a.Get(index)
+	if v == nil {
+		// TODO: Return a nil value?
+		return value.NewBool(false)
+	}
+	return v
 }
 
 type ExprOp int
@@ -119,12 +152,16 @@ type BinaryExpr struct {
 	right Expr
 }
 
-func (e *BinaryExpr) Eval(w io.Writer) *value.Value {
-	var z value.Value
+func (e *BinaryExpr) Eval(w io.Writer) value.Value {
+	var z value.Scalar
 	switch e.op {
 	case Add, Sub, Mul, Div, Mod:
-		l := e.left.Eval(w)
-		r := e.right.Eval(w)
+		l, ok := e.left.Eval(w).Scalar()
+		r, ok2 := e.right.Eval(w).Scalar()
+		if !ok && !ok2 {
+			// TODO: Remove log.Fatal
+			log.Fatal("invalid operation")
+		}
 		switch e.op {
 		case Add:
 			z.Add(l, r)
@@ -140,17 +177,32 @@ func (e *BinaryExpr) Eval(w io.Writer) *value.Value {
 			panic("unreachable")
 		}
 	case OrOr, AndAnd:
-		lval := e.left.Eval(w)
+		lval, ok := e.left.Eval(w).Scalar()
+		if !ok {
+			// TODO: Remove log.Fatal
+			log.Fatal("invalid operation")
+		}
+
 		if e.op == OrOr {
 			if lval.Bool() {
 				return value.NewBool(true)
 			}
-			return value.NewBool(e.right.Eval(w).Bool())
+			rval, ok := e.right.Eval(w).Scalar()
+			if !ok {
+				// TODO: Remove log.Fatal
+				log.Fatal("invalid operation")
+			}
+			return value.NewBool(rval.Bool())
 		}
 		if !lval.Bool() {
 			return value.NewBool(false)
 		}
-		return value.NewBool(e.right.Eval(w).Bool())
+		rval, ok := e.right.Eval(w).Scalar()
+		if !ok {
+			// TODO: Remove log.Fatal
+			log.Fatal("invalid operation")
+		}
+		return value.NewBool(rval.Bool())
 	default:
 		cmp := e.left.Eval(w).Cmp(e.right.Eval(w))
 		var b bool
@@ -180,13 +232,18 @@ type UnaryExpr struct {
 	expr Expr
 }
 
-func (e *UnaryExpr) Eval(w io.Writer) *value.Value {
-	var z value.Value
+func (e *UnaryExpr) Eval(w io.Writer) value.Value {
+	v, ok := e.expr.Eval(w).Scalar()
+	if !ok {
+		// TODO: Remove log.Fatal
+		log.Fatal("invalid operation")
+	}
+	var z value.Scalar
 	switch e.op {
 	case Minus:
-		z.Neg(e.expr.Eval(w))
+		z.Neg(v)
 	case Not:
-		return value.NewBool(!e.expr.Eval(w).Bool())
+		return value.NewBool(!v.Bool())
 	default:
 		panic("unreachable")
 	}
@@ -195,12 +252,24 @@ func (e *UnaryExpr) Eval(w io.Writer) *value.Value {
 
 type Lit int
 
-func (l Lit) Eval(io.Writer) *value.Value {
+func (l Lit) Eval(io.Writer) value.Value {
 	return value.NewNumber(float64(l))
 }
 
 type StringLit string
 
-func (s StringLit) Eval(io.Writer) *value.Value {
+func (s StringLit) Eval(io.Writer) value.Value {
 	return value.NewString(string(s))
+}
+
+type ArrayLit struct {
+	exprs []Expr
+}
+
+func (al *ArrayLit) Eval(w io.Writer) value.Value {
+	arr := value.NewArray()
+	for _, e := range al.exprs {
+		arr.Put(nil, e.Eval(w))
+	}
+	return arr
 }

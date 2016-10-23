@@ -61,7 +61,9 @@ func (p *Program) Run(out io.Writer, in scan.Source) error {
 	if p.anyPatternActions() {
 		p.sc.SetSource(in)
 		for p.sc.Scan() {
-			p.Exec(out)
+			for _, a := range p.pActions {
+				a.Exec(out)
+			}
 		}
 		if err := p.sc.Err(); err != nil {
 			return err
@@ -86,12 +88,6 @@ func (p *Program) End(w io.Writer) {
 
 func (p *Program) anyPatternActions() bool {
 	return len(p.pActions) > 0 || len(p.end) > 0
-}
-
-func (p *Program) Exec(w io.Writer) {
-	for _, a := range p.pActions {
-		a.Exec(w)
-	}
 }
 
 type BeginAction struct {

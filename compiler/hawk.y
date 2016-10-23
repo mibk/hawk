@@ -17,30 +17,32 @@ var (
 %}
 
 %union {
-	num      int
-	sym      string
-	symlist  []string
-	decl     Decl
-	decllist []Decl
-	expr     Expr
-	exprlist []Expr
-	stmt     Stmt
-	stmtlist []Stmt
+	num       int
+	sym       string
+	symlist   []string
+	decl      Decl
+	decllist  []Decl
+	expr      Expr
+	exprlist  []Expr
+	stmt      Stmt
+	stmtlist  []Stmt
+	blockstmt *BlockStmt
 }
 
-%type <decl>     decl paction funcdecl
-%type <symlist>  arglist
-%type <decllist> decllist
-%type <expr>     expr oexpr uexpr
-%type <exprlist> exprlist
-%type <stmt>     pipeline stmt ostmt ifstmt else if_or_block forstmt blockstmt
-%type <stmtlist> stmtlist
+%type <decl>      decl paction funcdecl
+%type <symlist>   arglist
+%type <decllist>  decllist
+%type <expr>      expr oexpr uexpr
+%type <exprlist>  exprlist
+%type <stmt>      pipeline stmt ostmt ifstmt else if_or_block forstmt foreachstmt
+%type <blockstmt> blockstmt
+%type <stmtlist>  stmtlist
 
 %token <num> NUM
 %token <sym> IDENT STRING PRINT
 %token       BEGIN END
 %token       IF ELSE
-%token       FOR BREAK CONTINUE
+%token       FOR IN BREAK CONTINUE
 %token       INC DEC
 %token       ADDEQ SUBEQ MULEQ DIVEQ MODEQ
 %token       FUNC RETURN
@@ -218,6 +220,10 @@ stmt:
 	{
 		$$ = $1
 	}
+|	foreachstmt
+	{
+		$$ = $1
+	}
 |	BREAK
 	{
 		$$ = &StatusStmt{StatusBreak}
@@ -277,6 +283,16 @@ forstmt:
 |	FOR oexpr blockstmt
 	{
 		$$ = &ForStmt{nil, $2, nil, $3}
+	}
+
+foreachstmt:
+	FOR IDENT IN expr blockstmt
+	{
+		$$ = &ForeachStmt{&Ident{ast, $2}, nil, $4, $5}
+	}
+|	FOR IDENT ',' IDENT IN expr blockstmt
+	{
+		$$ = &ForeachStmt{&Ident{ast, $2}, &Ident{ast, $4}, $6, $7}
 	}
 
 

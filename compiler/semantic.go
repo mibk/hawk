@@ -28,6 +28,10 @@ func walkStmt(stmt Stmt, scope Scope) {
 		walkExpr(s.cond, scope)
 		walkStmt(s.step, scope)
 		walkStmt(s.body, scope)
+	case *ForeachStmt:
+		walkExpr(s.key, scope)
+		walkExpr(s.val, scope)
+		walkStmt(s.body, scope)
 	case *ReturnStmt:
 		walkExpr(s.expr, scope)
 	case *PrintStmt:

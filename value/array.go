@@ -26,12 +26,14 @@ func (a *Array) Put(k *Scalar, v Value) {
 		k = NewNumber(float64(a.ai))
 		a.keys = append(a.keys, k)
 		a.ai++
-	} else if !a.associative {
+	} else {
 		if _, ok := a.m[*k]; !ok {
 			a.keys = append(a.keys, k)
-			a.ai++
-			if k.typ != Number || k.number != float64(a.ai) {
-				a.associative = true
+			if !a.associative {
+				a.ai++
+				if k.typ != Number || k.number != float64(a.ai) {
+					a.associative = true
+				}
 			}
 		}
 	}

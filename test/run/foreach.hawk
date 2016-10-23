@@ -1,0 +1,7 @@
+BEGIN { sum = [] }
+{ sum[$1] = sum[$1] + $2 }
+END {
+	for k, v in sum {
+		print k, v
+	}
+}

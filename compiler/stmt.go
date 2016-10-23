@@ -165,6 +165,36 @@ func (f *ForStmt) Exec(w io.Writer) Status {
 	return StatusNone
 }
 
+type ForeachStmt struct {
+	key  *Ident
+	val  *Ident
+	expr Expr
+	body *BlockStmt
+}
+
+func (fs ForeachStmt) Exec(w io.Writer) Status {
+	a, ok := fs.expr.Eval(w).Array()
+	if !ok {
+		// TODO: Remove log.Fatal
+		log.Fatal("invalid operation; need array")
+	}
+	for _, k := range a.Keys() {
+		if fs.key != nil {
+			fs.key.scope.SetVar(fs.key.name, k)
+		}
+		if fs.val != nil {
+			fs.val.scope.SetVar(fs.val.name, a.Get(k))
+		}
+		switch fs.body.Exec(w) {
+		case StatusBreak:
+			break
+		case StatusReturn:
+			return StatusReturn
+		}
+	}
+	return StatusNone
+}
+
 type StatusStmt struct {
 	status Status
 }

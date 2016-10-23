@@ -201,6 +201,7 @@ var symbols = []struct {
 	{"if", IF},
 	{"else", ELSE},
 	{"for", FOR},
+	{"in", IN},
 	{"break", BREAK},
 	{"continue", CONTINUE},
 	{"func", FUNC},

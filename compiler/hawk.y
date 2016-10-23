@@ -33,8 +33,8 @@ var (
 %type <decllist> decllist
 %type <expr>     expr oexpr uexpr
 %type <exprlist> exprlist
-%type <stmt>     pipeline stmt ostmt ifstmt else if_or_block forstmt
-%type <stmtlist> stmtlist blockstmt
+%type <stmt>     pipeline stmt ostmt ifstmt else if_or_block forstmt blockstmt
+%type <stmtlist> stmtlist
 
 %token <num> NUM
 %token <sym> IDENT STRING PRINT
@@ -96,7 +96,7 @@ decl:
 paction:
 	oexpr blockstmt
 	{
-		$$ = &PatternAction{$1, &BlockStmt{$2}}
+		$$ = &PatternAction{$1, $2}
 	}
 |	expr
 	{
@@ -104,17 +104,17 @@ paction:
 	}
 |	BEGIN blockstmt
 	{
-		$$ = &BeginAction{&BlockStmt{$2}}
+		$$ = &BeginAction{$2}
 	}
 |	END blockstmt
 	{
-		$$ = &EndAction{&BlockStmt{$2}}
+		$$ = &EndAction{$2}
 	}
 
 funcdecl:
 	FUNC IDENT '(' arglist ')' blockstmt
 	{
-		$$ = &FuncDecl{&FuncScope{}, $2, $4, &BlockStmt{$6}}
+		$$ = &FuncDecl{&FuncScope{}, $2, $4, $6}
 	}
 
 arglist:
@@ -133,7 +133,7 @@ arglist:
 blockstmt:
 	'{' stmtlist osemi '}'
 	{
-		$$ = $2
+		$$ = &BlockStmt{$2}
 	}
 
 stmtlist:
@@ -156,7 +156,7 @@ pipeline:
 	}
 |	blockstmt
 	{
-		$$ = &BlockStmt{$1}
+		$$ = $1
 	}
 |	pipeline '|' STRING
 	{
@@ -239,7 +239,7 @@ ostmt:
 ifstmt:
 	IF expr blockstmt else
 	{
-		$$ = &IfStmt{$2, &BlockStmt{$3}, $4}
+		$$ = &IfStmt{$2, $3, $4}
 	}
 
 else:
@@ -258,17 +258,17 @@ if_or_block:
 	}
 |	blockstmt
 	{
-		$$ = &BlockStmt{$1}
+		$$ = $1
 	}
 
 forstmt:
 	FOR ostmt ';' oexpr ';' ostmt blockstmt
 	{
-		$$ = &ForStmt{$2, $4, $6, &BlockStmt{$7}}
+		$$ = &ForStmt{$2, $4, $6, $7}
 	}
 |	FOR oexpr blockstmt
 	{
-		$$ = &ForStmt{nil, $2, nil, &BlockStmt{$3}}
+		$$ = &ForStmt{nil, $2, nil, $3}
 	}
 
 

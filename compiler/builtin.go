@@ -8,7 +8,19 @@ import (
 	"github.com/mibk/hawk/value"
 )
 
-func evalArgs(w io.Writer, fname string, nargs int, args []Expr) []*value.Scalar {
+func evalArgs(w io.Writer, fname string, nargs int, args []Expr) []value.Value {
+	if len(args) != nargs {
+		// TODO: Get rid of log.Fatalf
+		log.Fatalf("%s: %d != %d: argument count mismatch", fname, nargs, len(args))
+	}
+	vals := make([]value.Value, len(args))
+	for i := range args {
+		vals[i] = args[i].Eval(w)
+	}
+	return vals
+}
+
+func convertArgsToScalars(w io.Writer, fname string, nargs int, args []Expr) []*value.Scalar {
 	if len(args) != nargs {
 		// TODO: Get rid of log.Fatalf
 		log.Fatalf("%s: %d != %d: argument count mismatch", fname, nargs, len(args))

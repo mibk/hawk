@@ -5,5 +5,5 @@ BEGIN {
 	arr[0] = "Jan"
 	print arr[0]
 	arr[] = "April"
-	print arr[3]
+	print arr[len(arr)-1]
 }

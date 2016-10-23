@@ -52,7 +52,7 @@ func (c *CallExpr) Eval(w io.Writer) value.Value {
 
 	// Arithmetic functions:
 	if dcl, ok := aritFns[c.fun]; ok {
-		vals := evalArgs(w, c.fun, dcl.narg, c.args)
+		vals := convertArgsToScalars(w, c.fun, dcl.narg, c.args)
 		return dcl.fn(w, vals)
 	}
 
@@ -61,7 +61,7 @@ func (c *CallExpr) Eval(w io.Writer) value.Value {
 	if !ok {
 		log.Fatalf("unknown func %s", c.fun)
 	}
-	vals := evalArgs(w, c.fun, len(fn.args), c.args)
+	vals := convertArgsToScalars(w, c.fun, len(fn.args), c.args)
 	fn.scope.Push()
 	defer fn.scope.Pull()
 	for i, n := range fn.args {

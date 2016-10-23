@@ -9,20 +9,66 @@ import (
 	"strings"
 )
 
+// endOfSource is returned when io.EOF is reached in one of
+// the sources and there are still more sources to process.
+var endOfSource = errors.New("end of source")
+
+type Source interface {
+	io.Reader
+
+	// Name returns the name of the source.
+	Name() string
+}
+
+func MultiSource(sources ...Source) Source {
+	return &multiSource{sources}
+}
+
+type multiSource struct {
+	sources []Source
+}
+
+func (ms *multiSource) Read(p []byte) (n int, err error) {
+	for len(ms.sources) > 0 {
+		n, err = ms.sources[0].Read(p)
+		if err == io.EOF {
+			ms.sources = ms.sources[1:]
+			if len(ms.sources) > 0 {
+				err = endOfSource
+				return
+			}
+		}
+		if n > 0 || err != nil {
+			return
+		}
+	}
+	return 0, io.EOF
+}
+
+func (ms *multiSource) Name() string {
+	if len(ms.sources) == 0 {
+		return ""
+	}
+	return ms.sources[0].Name()
+}
+
 // A Scanner is used for splitting input into rows and
 // splitting rows into fields.
 type Scanner struct {
+	src Source // To retrieve filename only.
 	br  *bufio.Reader
 	err error // sticky err
 
-	recNumber int
-	rec       string
-	fields    []string
+	recNumber     int
+	fileRecNumber int
+	rec           string
+	fields        []string
 }
 
 // SetReader sets an io.Reader for scanner to read from.
-func (sc *Scanner) SetReader(r io.Reader) {
-	sc.br = bufio.NewReader(r)
+func (sc *Scanner) SetSource(src Source) {
+	sc.src = src
+	sc.br = bufio.NewReader(src)
 	sc.recNumber = 0
 }
 
@@ -38,15 +84,20 @@ func (sc *Scanner) Scan() bool {
 		return false
 	}
 
+readRecord:
 	line, err := sc.br.ReadBytes('\n')
 	if err == io.EOF {
 		return false
+	} else if err == endOfSource {
+		sc.fileRecNumber = 0
+		goto readRecord
 	} else if err != nil {
 		sc.err = err
 		return false
 	}
 	sc.splitRecord(line)
 	sc.recNumber++
+	sc.fileRecNumber++
 	return true
 }
 
@@ -72,12 +123,23 @@ func (sc *Scanner) Field(i int) string {
 	return ""
 }
 
-// NR returns the current record number.
-func (sc *Scanner) NR() int {
+// RecordNumber returns the current record number.
+func (sc *Scanner) RecordNumber() int {
 	return sc.recNumber
 }
 
-// NF returns number of fields of the current row.
-func (sc *Scanner) NF() int {
+// FieldCount returns number of fields of the current row.
+func (sc *Scanner) FieldCount() int {
 	return len(sc.fields)
+}
+
+// Filename returns the name of the currently processed file.
+func (sc *Scanner) Filename() string {
+	return sc.src.Name()
+}
+
+// FileRecordNumber returns the current record number in the currently
+// processed file.
+func (sc *Scanner) FileRecordNumber() int {
+	return sc.fileRecNumber
 }

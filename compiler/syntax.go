@@ -40,9 +40,13 @@ func (p *Program) Var(name string) *value.Value {
 	// Global "magic" variables.
 	switch name {
 	case "NR":
-		return value.NewNumber(float64(p.sc.NR()))
+		return value.NewNumber(float64(p.sc.RecordNumber()))
 	case "NF":
-		return value.NewNumber(float64(p.sc.NF()))
+		return value.NewNumber(float64(p.sc.FieldCount()))
+	case "FILENAME":
+		return value.NewString(p.sc.Filename())
+	case "FNR":
+		return value.NewNumber(float64(p.sc.FileRecordNumber()))
 	}
 	return new(value.Value)
 }
@@ -51,10 +55,10 @@ func (p *Program) SetVar(name string, v *value.Value) {
 	p.vars[name] = v
 }
 
-func (p *Program) Run(out io.Writer, in io.Reader) error {
+func (p *Program) Run(out io.Writer, in scan.Source) error {
 	p.Begin(out)
 	if p.anyPatternActions() {
-		p.sc.SetReader(in)
+		p.sc.SetSource(in)
 		for p.sc.Scan() {
 			p.Exec(out)
 		}

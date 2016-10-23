@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/mibk/hawk/compiler"
+	"github.com/mibk/hawk/scan"
 )
 
 var (
@@ -41,18 +42,18 @@ func main() {
 		args = args[1:]
 	}
 
-	var input io.Reader = os.Stdin
+	var input scan.Source = os.Stdin
 	if len(args) > 0 {
-		rds := make([]io.Reader, 0, len(args))
+		srcs := make([]scan.Source, 0, len(args))
 		for _, file := range args {
 			f, err := os.Open(file)
 			if err != nil {
 				log.Fatal(err)
 			}
 			defer f.Close()
-			rds = append(rds, f)
+			srcs = append(srcs, f)
 		}
-		input = io.MultiReader(rds...)
+		input = scan.MultiSource(srcs...)
 	}
 
 	prog, err := compiler.Compile(srcCode)

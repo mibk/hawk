@@ -1,5 +1,7 @@
 package value
 
+import "fmt"
+
 type Undefined struct {
 	// TODO: Definition of this type might be a bit
 	// unfortunate, but until a better solution is found,
@@ -73,4 +75,17 @@ func (u *Undefined) Encode() string {
 		return u.Encode()
 	}
 	return "undefined"
+}
+
+func (u *Undefined) Format(s fmt.State, verb rune) {
+	if u.arr != nil {
+		u.arr.Format(s, verb)
+		return
+	}
+	switch verb {
+	case 'v', 'V':
+		fmt.Fprint(s, "undefined")
+		return
+	}
+	fmt.Fprintf(s, formatVerb(s, verb), nil)
 }

@@ -1,0 +1,13 @@
+BEGIN {
+	a = []
+	b = 3
+	c = "Syd"
+	d = [0, []]
+	e = 0 == 0
+
+	for _, v in [a, b, c, d, e, f] {
+		printf "%V\n", v
+	}
+
+	printf "%v\n", d
+}

@@ -51,6 +51,18 @@ func NewBool(b bool) *Scalar {
 func (v *Scalar) Scalar() (w *Scalar, ok bool) { return v, true }
 func (v *Scalar) Array() (w *Array, ok bool)   { return nil, false }
 
+func (v *Scalar) Type() string {
+	switch v.typ {
+	case String:
+		return "string"
+	case Bool:
+		return "bool"
+	case Number:
+		return "number"
+	}
+	panic("unknown scalar type")
+}
+
 func (v *Scalar) Cmp(w Value) int {
 	v2, ok := w.Scalar()
 	if !ok {
@@ -123,6 +135,9 @@ func (v *Scalar) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v':
 		fmt.Fprint(s, v.String())
+		return
+	case 'V':
+		fmt.Fprint(s, v.Type())
 		return
 	// Boolean:
 	case 't':

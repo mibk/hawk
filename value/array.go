@@ -74,8 +74,12 @@ func (a *Array) Encode() string { return a.String() }
 func (a *Array) Len() int       { return len(a.keys) }
 
 func (a *Array) Format(s fmt.State, verb rune) {
-	if verb == 'v' {
+	switch verb {
+	case 'v':
 		fmt.Fprint(s, a.String())
+		return
+	case 'V':
+		fmt.Fprint(s, "array")
 		return
 	}
 	fmt.Fprintf(s, formatVerb(s, verb), nil)

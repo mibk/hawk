@@ -52,6 +52,7 @@ var (
 %left OROR
 %left ANDAND
 %left EQ NE LE GE '<' '>'
+%left '.'
 %left '+' '-'
 %left '*' '/' '%'
 
@@ -361,6 +362,10 @@ expr:
 |	expr '%' expr
 	{
 		$$ = &BinaryExpr{Mod, $1, $3}
+	}
+|	expr '.' expr
+	{
+		$$ = &BinaryExpr{Concat, $1, $3}
 	}
 
 oexpr:

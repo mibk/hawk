@@ -138,6 +138,8 @@ const (
 	Plus  // +expr
 	Minus // -expr
 	Not   // !expr
+
+	Concat // left . right
 )
 
 type BinaryExpr struct {
@@ -149,7 +151,7 @@ type BinaryExpr struct {
 func (e *BinaryExpr) Eval(w io.Writer) value.Value {
 	var z value.Scalar
 	switch e.op {
-	case Add, Sub, Mul, Div, Mod:
+	case Add, Sub, Mul, Div, Mod, Concat:
 		l, ok := e.left.Eval(w).Scalar()
 		r, ok2 := e.right.Eval(w).Scalar()
 		if !ok && !ok2 {
@@ -166,6 +168,8 @@ func (e *BinaryExpr) Eval(w io.Writer) value.Value {
 			z.Div(l, r)
 		case Mod:
 			z.Mod(l, r)
+		case Concat:
+			z.Concat(l, r)
 		default:
 			panic("unreachable")
 		}

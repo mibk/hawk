@@ -61,7 +61,7 @@ func (l *yyLex) Lex(yylval *yySymType) (tok int) {
 			return 0
 		case '_':
 			return l.lexIdent(yylval)
-		case ';', '{', '}', ',', '(', ')', '$', '|', '[', ']':
+		case ';', '{', '}', ',', '(', ')', '$', '|', '[', ']', '.':
 		case '?', ':':
 		case '=':
 			if l.accept('=') {

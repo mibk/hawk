@@ -218,3 +218,9 @@ func (z *Scalar) Neg(x *Scalar) *Scalar {
 func toFloat64(x, y *Scalar) (float64, float64) {
 	return x.Float64(), y.Float64()
 }
+
+func (z *Scalar) Concat(x, y *Scalar) *Scalar {
+	z.typ = String
+	z.string = x.String() + y.String()
+	return z
+}

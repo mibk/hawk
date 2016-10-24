@@ -52,6 +52,7 @@ func (a *Array) Scalar() (v *Scalar, ok bool) { return nil, false }
 func (a *Array) Array() (v *Array, ok bool)   { return a, true }
 
 func (a *Array) Cmp(Value) int { return -1 }
+
 func (a *Array) String() string {
 	var buf bytes.Buffer
 	buf.WriteRune('[')
@@ -60,15 +61,14 @@ func (a *Array) String() string {
 		if i != 0 {
 			buf.WriteString(", ")
 		}
-		// TODO: Use a different function for stringification of
-		// the values. This method for example doesn't quote strings.
-		buf.WriteString(a.m[*k].String())
+		buf.WriteString(a.m[*k].Encode())
 	}
 	buf.WriteRune(']')
 	return buf.String()
 }
 
-func (a *Array) Len() int { return len(a.keys) }
+func (a *Array) Encode() string { return a.String() }
+func (a *Array) Len() int       { return len(a.keys) }
 
 // TODO
 // func (v *Array) Format(s fmt.State, verb rune) {

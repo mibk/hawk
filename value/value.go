@@ -19,6 +19,11 @@ type Value interface {
 	Cmp(Value) int
 	String() string
 	Len() int
+
+	// Encode encodes value to string in such a way that the resulting
+	// string is a lexicographically correct representation of the
+	// value.
+	Encode() string
 }
 
 type Scalar struct {
@@ -70,7 +75,7 @@ func (v *Scalar) cmp(b *Scalar) int {
 		}
 		return 0
 	}
-	panic("unreachable")
+	panic("unknown scalar type")
 }
 
 func (v *Scalar) Number() *Scalar {
@@ -101,7 +106,16 @@ func (v *Scalar) String() string {
 		}
 		return "false"
 	}
-	return "<unknown>"
+	panic("unknown scalar type")
+}
+
+func (v *Scalar) Encode() string {
+	switch v.typ {
+	case String:
+		return strconv.Quote(v.string)
+	default:
+		return v.String()
+	}
 }
 
 func (v *Scalar) Format(s fmt.State, verb rune) {

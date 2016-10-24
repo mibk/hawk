@@ -1,5 +1,8 @@
 BEGIN {
 	x = []
+	y[0] = 3
+	z[] = 4
+	print y[0], z[0], z
 	arr = ["January", "February", 1 + 2]
 	print arr[0], arr[2 - 1], arr[2], arr[3]
 	arr[0] = "Jan"

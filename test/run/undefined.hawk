@@ -1,0 +1,8 @@
+BEGIN {
+	tests = ["", 0, 0 == 1, []]
+	for i, t in tests {
+		if x != t {
+			printf "test[%d]: '%v' and '%v' should be equal\n", i, x, t
+		}
+	}
+}

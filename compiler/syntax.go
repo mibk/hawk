@@ -49,7 +49,9 @@ func (p *Program) Var(name string) value.Value {
 	case "FNR":
 		return value.NewNumber(float64(p.sc.FileRecordNumber()))
 	}
-	return new(value.Scalar)
+	v := &value.Undefined{}
+	p.vars[name] = v
+	return v
 }
 
 func (p *Program) SetVar(name string, v value.Value) {
@@ -148,10 +150,12 @@ func (f *FuncScope) Pull() {
 }
 
 func (f *FuncScope) Var(name string) value.Value {
-	v, ok := f.currScope()[name]
-	if !ok {
-		return new(value.Scalar)
+	s := f.currScope()
+	if v, ok := s[name]; ok {
+		return v
 	}
+	v := &value.Undefined{}
+	s[name] = v
 	return v
 }
 

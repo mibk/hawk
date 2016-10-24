@@ -30,6 +30,7 @@ func TestRun(t *testing.T) {
 				fin, _ := os.Open(progname + ".in")
 				if err := prog.Run(&out, fin); err != nil {
 					t.Errorf("unexpected err: %v", err)
+					return
 				}
 
 				var want []byte

@@ -66,8 +66,8 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, `Usage: hawk 'program text' [file ...]
-  or:  hawk -f program-file [file ...]
+	fmt.Fprintln(os.Stderr, `Usage: hawk 'program' [file ...]
+  or:  hawk -f progfile [file ...]
 
 Hawk is an Awk clone. Program is a set of PATTERN { ACTION } pairs. Hawk reads
 from all of the present files and for each line of each file executes all the

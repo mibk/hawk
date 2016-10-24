@@ -1,6 +1,9 @@
 package value
 
-import "bytes"
+import (
+	"bytes"
+	"fmt"
+)
 
 type Array struct {
 	ai          int // autoincrement
@@ -70,6 +73,10 @@ func (a *Array) String() string {
 func (a *Array) Encode() string { return a.String() }
 func (a *Array) Len() int       { return len(a.keys) }
 
-// TODO
-// func (v *Array) Format(s fmt.State, verb rune) {
-// }
+func (a *Array) Format(s fmt.State, verb rune) {
+	if verb == 'v' {
+		fmt.Fprint(s, a.String())
+		return
+	}
+	fmt.Fprintf(s, formatVerb(s, verb), nil)
+}

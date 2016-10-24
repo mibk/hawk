@@ -38,7 +38,7 @@ func TestRun(t *testing.T) {
 					want, _ = ioutil.ReadAll(fout)
 				}
 				if got := out.Bytes(); bytes.Compare(got, want) != 0 {
-					t.Errorf("%s.out:\n got:\n%s\nwant:\n%s", progname, string(got), string(want))
+					t.Errorf("%s.out:\n got:\n`%s`\nwant:\n`%s`", progname, string(got), string(want))
 				}
 			})
 		}

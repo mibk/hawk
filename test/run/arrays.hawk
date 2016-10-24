@@ -7,4 +7,5 @@ BEGIN {
 	arr[] = "April"
 	print arr[len(arr)-1]
 	print arr
+	printf "%#v\n", arr
 }

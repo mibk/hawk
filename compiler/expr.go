@@ -21,7 +21,7 @@ type TernaryExpr struct {
 func (t *TernaryExpr) Eval(w io.Writer) value.Value {
 	v, ok := t.cond.Eval(w).Scalar()
 	if !ok {
-		panic("non-scalar value used as a condition")
+		throw("non-scalar value used as a condition")
 	}
 	if v.Bool() {
 		return t.yes.Eval(w)
@@ -42,7 +42,7 @@ func (c *CallExpr) Eval(w io.Writer) value.Value {
 	case "sprintf":
 		format, vals, err := formatPrintfArgs(w, "sprintf", c.args)
 		if err != nil {
-			panic(err)
+			throw("%v", err)
 		}
 		return value.NewString(fmt.Sprintf(format, vals...))
 	}
@@ -55,7 +55,7 @@ func (c *CallExpr) Eval(w io.Writer) value.Value {
 
 	fn, ok := ast.funcs[c.fun]
 	if !ok {
-		panic(fmt.Sprintf("unknown function: %s", c.fun))
+		throw("unknown function: %s", c.fun)
 	}
 	vals := convertArgsToScalars(w, c.fun, len(fn.args), c.args)
 	fn.scope.Push()
@@ -89,7 +89,7 @@ type FieldExpr struct {
 func (f *FieldExpr) Eval(w io.Writer) value.Value {
 	v, ok := f.num.Eval(w).Scalar()
 	if !ok {
-		panic("attempting to access a field using a non-scalar value")
+		throw("attempting to access a field using a non-scalar value")
 	}
 	return value.NewString(f.sc.Field(v.Int()))
 }
@@ -103,11 +103,11 @@ func (ie *IndexExpr) Eval(w io.Writer) value.Value {
 	a, ok := ie.expr.Eval(w).Array()
 	if !ok {
 		// TODO: This might be permitted e.g. for string.
-		panic("attempting to get an index of a scalar value")
+		throw("attempting to get an index of a scalar value")
 	}
 	index, ok := ie.index.Eval(w).Scalar()
 	if !ok {
-		panic("indexing an array using a non-scalar value")
+		throw("indexing an array using a non-scalar value")
 	}
 	v := a.Get(index)
 	if v == nil {
@@ -153,7 +153,7 @@ func (e *BinaryExpr) Eval(w io.Writer) value.Value {
 		l, ok := e.left.Eval(w).Scalar()
 		r, ok2 := e.right.Eval(w).Scalar()
 		if !ok && !ok2 {
-			panic("unsupported type for binary expression")
+			throw("unsupported type for binary expression")
 		}
 		switch e.op {
 		case Add:
@@ -172,7 +172,7 @@ func (e *BinaryExpr) Eval(w io.Writer) value.Value {
 	case OrOr, AndAnd:
 		lval, ok := e.left.Eval(w).Scalar()
 		if !ok {
-			panic("unsupported type for binary expression")
+			throw("unsupported type for binary expression")
 		}
 
 		if e.op == OrOr {
@@ -181,7 +181,7 @@ func (e *BinaryExpr) Eval(w io.Writer) value.Value {
 			}
 			rval, ok := e.right.Eval(w).Scalar()
 			if !ok {
-				panic("unsupported type for binary expression")
+				throw("unsupported type for binary expression")
 			}
 			return value.NewBool(rval.Bool())
 		}
@@ -190,7 +190,7 @@ func (e *BinaryExpr) Eval(w io.Writer) value.Value {
 		}
 		rval, ok := e.right.Eval(w).Scalar()
 		if !ok {
-			panic("unsupported type for binary expression")
+			throw("unsupported type for binary expression")
 		}
 		return value.NewBool(rval.Bool())
 	default:
@@ -210,7 +210,7 @@ func (e *BinaryExpr) Eval(w io.Writer) value.Value {
 		case GtEq:
 			b = cmp >= 0
 		default:
-			panic("unreachable")
+			panic("unknown binary operation")
 		}
 		return value.NewBool(b)
 	}
@@ -225,7 +225,7 @@ type UnaryExpr struct {
 func (e *UnaryExpr) Eval(w io.Writer) value.Value {
 	v, ok := e.expr.Eval(w).Scalar()
 	if !ok {
-		panic("unsupported type for unary expression")
+		throw("unsupported type for unary expression")
 	}
 	var z value.Scalar
 	switch e.op {
@@ -234,7 +234,7 @@ func (e *UnaryExpr) Eval(w io.Writer) value.Value {
 	case Not:
 		return value.NewBool(!v.Bool())
 	default:
-		panic("unreachable")
+		panic("unknown unary operation")
 	}
 	return &z
 }

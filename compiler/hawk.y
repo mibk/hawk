@@ -3,6 +3,7 @@ package compiler
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 
 	"github.com/mibk/hawk/scan"
@@ -70,7 +71,7 @@ top:
 			case *FuncDecl:
 				ast.funcs[d.name] = d
 			default:
-				panic("unreachable")
+				panic(fmt.Sprintf("unexpected type: %T", d))
 			}
 		}
 	}

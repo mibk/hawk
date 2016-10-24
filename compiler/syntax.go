@@ -60,7 +60,11 @@ func (p *Program) Run(out io.Writer, in scan.Source) (err error) {
 	defer func() {
 		if err == nil {
 			if v := recover(); v != nil {
-				err = fmt.Errorf("%v", v)
+				e, ok := v.(*runtimeError)
+				if !ok {
+					panic(v)
+				}
+				err = e
 			}
 		}
 	}()
@@ -114,7 +118,7 @@ func (p *PatternAction) Exec(w io.Writer) Status {
 	if p.pattern != nil {
 		v, ok := p.pattern.Eval(w).Scalar()
 		if !ok {
-			panic("pattern in an action must be a scalar value")
+			throw("pattern in an action must be a scalar value")
 		}
 		if !v.Bool() {
 			return StatusNone
@@ -160,4 +164,12 @@ func (f *FuncScope) currScope() map[string]value.Value {
 		panic("stack shouldn't be nil")
 	}
 	return f.stack[len(f.stack)-1]
+}
+
+func throw(format string, args ...interface{}) {
+	panic(&runtimeError{fmt.Errorf(format, args...)})
+}
+
+type runtimeError struct {
+	error
 }

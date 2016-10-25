@@ -177,3 +177,15 @@ func throw(format string, args ...interface{}) {
 type runtimeError struct {
 	error
 }
+
+type debugInfo struct {
+	line int
+}
+
+func genDebugInfo() debugInfo {
+	return debugInfo{lexlineno}
+}
+
+func (di debugInfo) throw(format string, args ...interface{}) {
+	throw(fmt.Sprintf("line %d:", di.line)+format, args...)
+}

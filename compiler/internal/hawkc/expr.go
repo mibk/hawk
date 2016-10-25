@@ -13,6 +13,7 @@ type Expr interface {
 }
 
 type TernaryExpr struct {
+	debugInfo
 	cond Expr
 	yes  Expr
 	no   Expr
@@ -21,7 +22,7 @@ type TernaryExpr struct {
 func (t *TernaryExpr) Eval(w io.Writer) value.Value {
 	v, ok := t.cond.Eval(w).Scalar()
 	if !ok {
-		throw("non-scalar value used as a condition")
+		t.throw("non-scalar value used as a condition")
 	}
 	if v.Bool() {
 		return t.yes.Eval(w)
@@ -30,6 +31,7 @@ func (t *TernaryExpr) Eval(w io.Writer) value.Value {
 }
 
 type CallExpr struct {
+	debugInfo
 	fun  string
 	args []Expr
 }
@@ -37,27 +39,27 @@ type CallExpr struct {
 func (c *CallExpr) Eval(w io.Writer) value.Value {
 	switch c.fun {
 	case "len":
-		vals := evalArgs(w, c.fun, 1, c.args)
+		vals := evalArgs(c.debugInfo, w, c.fun, 1, c.args)
 		return value.NewNumber(float64(vals[0].Len()))
 	case "sprintf":
 		format, vals, err := formatPrintfArgs(w, "sprintf", c.args)
 		if err != nil {
-			throw("%v", err)
+			c.throw("%v", err)
 		}
 		return value.NewString(fmt.Sprintf(format, vals...))
 	}
 
 	// Arithmetic functions:
 	if dcl, ok := aritFns[c.fun]; ok {
-		vals := convertArgsToScalars(w, c.fun, dcl.narg, c.args)
+		vals := convertArgsToScalars(c.debugInfo, w, c.fun, dcl.narg, c.args)
 		return dcl.fn(vals)
 	}
 
 	fn, ok := ast.funcs[c.fun]
 	if !ok {
-		throw("unknown function: %s", c.fun)
+		c.throw("unknown function: %s", c.fun)
 	}
-	vals := convertArgsToScalars(w, c.fun, len(fn.args), c.args)
+	vals := convertArgsToScalars(c.debugInfo, w, c.fun, len(fn.args), c.args)
 	fn.scope.Push()
 	defer fn.scope.Pull()
 	for i, n := range fn.args {
@@ -82,6 +84,7 @@ func (i *Ident) Eval(io.Writer) value.Value {
 }
 
 type FieldExpr struct {
+	debugInfo
 	sc  *scan.Scanner
 	num Expr
 }
@@ -89,12 +92,13 @@ type FieldExpr struct {
 func (f *FieldExpr) Eval(w io.Writer) value.Value {
 	v, ok := f.num.Eval(w).Scalar()
 	if !ok {
-		throw("attempting to access a field using a non-scalar value")
+		f.throw("attempting to access a field using a non-scalar value")
 	}
 	return value.NewString(f.sc.Field(v.Int()))
 }
 
 type IndexExpr struct {
+	debugInfo
 	expr  Expr
 	index Expr
 }
@@ -103,11 +107,11 @@ func (ie *IndexExpr) Eval(w io.Writer) value.Value {
 	a, ok := ie.expr.Eval(w).Array()
 	if !ok {
 		// TODO: This might be permitted e.g. for string.
-		throw("attempting to get an index of a scalar value")
+		ie.throw("attempting to get an index of a scalar value")
 	}
 	index, ok := ie.index.Eval(w).Scalar()
 	if !ok {
-		throw("indexing an array using a non-scalar value")
+		ie.throw("indexing an array using a non-scalar value")
 	}
 	v := a.Get(index)
 	if v == nil {
@@ -143,6 +147,7 @@ const (
 )
 
 type BinaryExpr struct {
+	debugInfo
 	op    ExprOp
 	left  Expr
 	right Expr
@@ -164,7 +169,7 @@ func (e *BinaryExpr) Eval(w io.Writer) value.Value {
 				}
 				return value.MergeArrays(a, a2)
 			}
-			throw("unsupported type for binary expression")
+			e.throw("unsupported type for binary expression")
 		}
 		switch e.op {
 		case Add:
@@ -185,7 +190,7 @@ func (e *BinaryExpr) Eval(w io.Writer) value.Value {
 	case OrOr, AndAnd:
 		lval, ok := e.left.Eval(w).Scalar()
 		if !ok {
-			throw("unsupported type for binary expression")
+			e.throw("unsupported type for binary expression")
 		}
 
 		if e.op == OrOr {
@@ -194,7 +199,7 @@ func (e *BinaryExpr) Eval(w io.Writer) value.Value {
 			}
 			rval, ok := e.right.Eval(w).Scalar()
 			if !ok {
-				throw("unsupported type for binary expression")
+				e.throw("unsupported type for binary expression")
 			}
 			return value.NewBool(rval.Bool())
 		}
@@ -203,14 +208,14 @@ func (e *BinaryExpr) Eval(w io.Writer) value.Value {
 		}
 		rval, ok := e.right.Eval(w).Scalar()
 		if !ok {
-			throw("unsupported type for binary expression")
+			e.throw("unsupported type for binary expression")
 		}
 		return value.NewBool(rval.Bool())
 	default:
 		l, r := e.left.Eval(w), e.right.Eval(w)
 		cmp, ok := l.Cmp(r)
 		if !ok && e.op != Eq && e.op != NotEq {
-			throw("cannot compare %V and %V using <, >, <=, or >=", l, r)
+			e.throw("cannot compare %V and %V using <, >, <=, or >=", l, r)
 		}
 		var b bool
 		switch e.op {
@@ -235,6 +240,7 @@ func (e *BinaryExpr) Eval(w io.Writer) value.Value {
 }
 
 type UnaryExpr struct {
+	debugInfo
 	op   ExprOp
 	expr Expr
 }
@@ -242,7 +248,7 @@ type UnaryExpr struct {
 func (e *UnaryExpr) Eval(w io.Writer) value.Value {
 	v, ok := e.expr.Eval(w).Scalar()
 	if !ok {
-		throw("unsupported type for unary expression")
+		e.throw("unsupported type for unary expression")
 	}
 	var z value.Scalar
 	switch e.op {

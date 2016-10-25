@@ -7,9 +7,9 @@ import (
 	"github.com/mibk/hawk/value"
 )
 
-func evalArgs(w io.Writer, fname string, nargs int, args []Expr) []value.Value {
+func evalArgs(di debugInfo, w io.Writer, fname string, nargs int, args []Expr) []value.Value {
 	if len(args) != nargs {
-		throw("%s: %d != %d: argument count mismatch", fname, nargs, len(args))
+		di.throw("%s: %d != %d: argument count mismatch", fname, nargs, len(args))
 	}
 	vals := make([]value.Value, len(args))
 	for i := range args {
@@ -18,16 +18,16 @@ func evalArgs(w io.Writer, fname string, nargs int, args []Expr) []value.Value {
 	return vals
 }
 
-func convertArgsToScalars(w io.Writer, fname string, nargs int, args []Expr) []*value.Scalar {
+func convertArgsToScalars(di debugInfo, w io.Writer, fname string, nargs int, args []Expr) []*value.Scalar {
 	if len(args) != nargs {
-		throw("%s: %d != %d: argument count mismatch", fname, nargs, len(args))
+		di.throw("%s: %d != %d: argument count mismatch", fname, nargs, len(args))
 	}
 	vals := make([]*value.Scalar, len(args))
 	for i := range args {
 		if v, ok := args[i].Eval(w).Scalar(); ok {
 			vals[i] = v
 		} else {
-			throw("%s: all arguments must be scalar values", fname)
+			di.throw("%s: all arguments must be scalar values", fname)
 		}
 	}
 	return vals

@@ -48,6 +48,7 @@ func (b *BlockStmt) Exec(w io.Writer) Status {
 }
 
 type PipeStmt struct {
+	debugInfo
 	stmt Stmt
 	cmd  string
 }
@@ -56,49 +57,50 @@ func (p *PipeStmt) Exec(w io.Writer) Status {
 	// TODO: better method for argument parsing. (Arguments could be in quotes.)
 	args := strings.Fields(p.cmd)
 	if len(args) == 0 {
-		throw("pipe statement: no command specified")
+		p.throw("pipe statement: no command specified")
 	}
 	name := args[0]
 	cmd := exec.Command(name, args[1:]...)
 	cmd.Stdout, cmd.Stderr = w, w
 	wc, err := cmd.StdinPipe()
 	if err != nil {
-		throw("%s: %v", name, err)
+		p.throw("%s: %v", name, err)
 	}
 	if err := cmd.Start(); err != nil {
-		throw("%s: %v", name, err)
+		p.throw("%s: %v", name, err)
 	}
 	st := p.stmt.Exec(wc)
 	if err := wc.Close(); err != nil {
-		throw("%s: %v", name, err)
+		p.throw("%s: %v", name, err)
 	}
 	if err := cmd.Wait(); err != nil {
-		throw("%s: %v", name, err)
+		p.throw("%s: %v", name, err)
 	}
 	return st
 }
 
 type AssignStmt struct {
+	debugInfo
 	scope Scope
 	left  Expr
 	right Expr
 }
 
-func (a *AssignStmt) Exec(w io.Writer) Status {
-	v := a.right.Eval(w)
-	switch e := a.left.(type) {
+func (as *AssignStmt) Exec(w io.Writer) Status {
+	v := as.right.Eval(w)
+	switch e := as.left.(type) {
 	case *Ident:
-		a.scope.SetVar(e.name, v)
+		as.scope.SetVar(e.name, v)
 	case *IndexExpr:
 		a, ok := e.expr.Eval(w).Array()
 		if !ok {
-			throw("assigning to a scalar value using index expression")
+			as.throw("assigning to a scalar value using index expression")
 		}
 		var index *value.Scalar
 		if e.index != nil {
 			index, ok = e.index.Eval(w).Scalar()
 			if !ok {
-				throw("indexing an array using a non-scalar value")
+				as.throw("indexing an array using a non-scalar value")
 			}
 		}
 		a.Put(index, v)
@@ -109,25 +111,27 @@ func (a *AssignStmt) Exec(w io.Writer) Status {
 }
 
 type IfStmt struct {
+	debugInfo
 	expr     Expr
 	stmt     *BlockStmt
 	elseStmt Stmt
 }
 
-func (i *IfStmt) Exec(w io.Writer) Status {
-	v, ok := i.expr.Eval(w).Scalar()
+func (is *IfStmt) Exec(w io.Writer) Status {
+	v, ok := is.expr.Eval(w).Scalar()
 	if !ok {
-		throw("non-scalar value used as a condition")
+		is.throw("non-scalar value used as a condition")
 	}
 	if v.Bool() {
-		return i.stmt.Exec(w)
-	} else if i.elseStmt != nil {
-		return i.elseStmt.Exec(w)
+		return is.stmt.Exec(w)
+	} else if is.elseStmt != nil {
+		return is.elseStmt.Exec(w)
 	}
 	return StatusNone
 }
 
 type ForStmt struct {
+	debugInfo
 	init Stmt
 	cond Expr
 	step Stmt
@@ -142,7 +146,7 @@ func (f *ForStmt) Exec(w io.Writer) Status {
 		if f.cond != nil {
 			v, ok := f.cond.Eval(w).Scalar()
 			if !ok {
-				throw("non-scalar value used as a condition")
+				f.throw("non-scalar value used as a condition")
 			}
 			if !v.Bool() {
 				break
@@ -162,6 +166,7 @@ func (f *ForStmt) Exec(w io.Writer) Status {
 }
 
 type ForeachStmt struct {
+	debugInfo
 	key  *Ident
 	val  *Ident
 	expr Expr
@@ -171,7 +176,7 @@ type ForeachStmt struct {
 func (fs ForeachStmt) Exec(w io.Writer) Status {
 	a, ok := fs.expr.Eval(w).Array()
 	if !ok {
-		throw("attempting to range over a scalar value")
+		fs.throw("attempting to range over a scalar value")
 	}
 	for _, k := range a.Keys() {
 		if fs.key != nil {
@@ -211,6 +216,7 @@ func (r *ReturnStmt) Exec(w io.Writer) Status {
 }
 
 type PrintStmt struct {
+	debugInfo
 	fun  string
 	args []Expr
 }
@@ -226,7 +232,7 @@ func (p *PrintStmt) Exec(w io.Writer) Status {
 	case "printf":
 		format, vals, err := formatPrintfArgs(w, "printf", p.args)
 		if err != nil {
-			throw("%v", err)
+			p.throw("%v", err)
 		}
 		fmt.Fprintf(w, format, vals...)
 	default:

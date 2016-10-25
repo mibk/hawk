@@ -93,6 +93,7 @@ func TestRuntimeErrors(t *testing.T) {
 			t.Errorf("%d: test unexpectedly succeded", i)
 			continue
 		}
+		tt.err = "line 1:" + tt.err
 		if err.Error() != tt.err {
 			t.Errorf("test %d:\n got: %v\nwant: %v", i, err, tt.err)
 		}

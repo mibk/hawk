@@ -243,6 +243,12 @@ func (e *UnaryExpr) Eval(w io.Writer) value.Value {
 	return &z
 }
 
+type BoolLit bool
+
+func (b BoolLit) Eval(io.Writer) value.Value {
+	return value.NewBool(bool(b))
+}
+
 type Lit int
 
 func (l Lit) Eval(io.Writer) value.Value {

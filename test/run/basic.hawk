@@ -7,4 +7,13 @@ BEGIN {
 	if x != 11 {
 		print "got", x, "want 11";
 	};
+
+	x = false
+	if x != false {
+		print "x should be false"
+	}
+	x = true
+	if !x {
+		print "x should be true"
+	}
 }

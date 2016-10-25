@@ -34,7 +34,7 @@ func init() {
 func (l *yyLex) Lex(yylval *yySymType) (tok int) {
 	defer func() {
 		switch tok {
-		case IDENT, NUM, STRING, BREAK, CONTINUE, INC, DEC, ')', '}', ']':
+		case IDENT, NUM, STRING, BOOL, BREAK, CONTINUE, INC, DEC, ')', '}', ']':
 			nlsemi = true
 		default:
 			nlsemi = false
@@ -174,6 +174,12 @@ func (l *yyLex) lexIdent(yylval *yySymType) int {
 	name := l.buf.String()
 	if tok, ok := isSymbol(name); ok {
 		return tok
+	} else if name == "true" {
+		yylval.num = 1
+		return BOOL
+	} else if name == "false" {
+		yylval.num = 0
+		return BOOL
 	}
 	yylval.sym = name
 	switch name {

@@ -9,5 +9,7 @@ BEGIN {
 		printf "%V\n", v
 	}
 
+	printf "%V:%V\n", true, false
+
 	printf "%v\n", d
 }

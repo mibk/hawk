@@ -39,14 +39,14 @@ var (
 %type <blockstmt> blockstmt
 %type <stmtlist>  stmtlist
 
-%token <num> NUM
-%token <sym> IDENT STRING PRINT
-%token       BEGIN END
-%token       IF ELSE
-%token       FOR IN BREAK CONTINUE
-%token       INC DEC
-%token       ADDEQ SUBEQ MULEQ DIVEQ MODEQ
-%token       FUNC RETURN
+%token <num>  NUM BOOL
+%token <sym>  IDENT STRING PRINT
+%token        BEGIN END
+%token        IF ELSE
+%token        FOR IN BREAK CONTINUE
+%token        INC DEC
+%token        ADDEQ SUBEQ MULEQ DIVEQ MODEQ
+%token        FUNC RETURN
 
 %right '?' ':'
 %left OROR
@@ -386,6 +386,10 @@ uexpr:
 |	STRING
 	{
 		$$ = StringLit($1)
+	}
+|	BOOL
+	{
+		$$ = BoolLit($1 != 0)
 	}
 |	'+' uexpr
 	{

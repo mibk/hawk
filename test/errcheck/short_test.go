@@ -67,13 +67,17 @@ var runtimeInvalid = []struct {
 	prog string
 	err  string
 }{
-	0: {`x = 0; x[0] = 2`, "assigning to a scalar value using index expression"},
-	1: {`a = []; if a {}`, "non-scalar value used as a condition"},
-	2: {`doesntexist()`, "unknown function: doesntexist"},
-	3: {`a = []; print $a`, "attempting to access a field using a non-scalar value"},
-	4: {`sin(a, b)`, "sin: 1 != 2: argument count mismatch"},
-	5: {`a = []; cos(a)`, "cos: all arguments must be scalar values"},
-	6: {`a = "scalar"; for x in a {}`, "attempting to range over a scalar value"},
+	0:  {`x = 0; x[0] = 2`, "assigning to a scalar value using index expression"},
+	1:  {`a = []; if a {}`, "non-scalar value used as a condition"},
+	2:  {`doesntexist()`, "unknown function: doesntexist"},
+	3:  {`a = []; print $a`, "attempting to access a field using a non-scalar value"},
+	4:  {`sin(a, b)`, "sin: 1 != 2: argument count mismatch"},
+	5:  {`a = []; cos(a)`, "cos: all arguments must be scalar values"},
+	6:  {`a = "scalar"; for x in a {}`, "attempting to range over a scalar value"},
+	7:  {`[] < ""`, "cannot compare array and string using <, >, <=, or >="},
+	8:  {`[] < x`, "cannot compare array and array using <, >, <=, or >="},
+	9:  {`[] < 50`, "cannot compare array and number using <, >, <=, or >="},
+	10: {`[] < []`, "cannot compare array and array using <, >, <=, or >="},
 }
 
 func TestRuntimeErrors(t *testing.T) {

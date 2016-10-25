@@ -54,7 +54,35 @@ func (a *Array) Keys() []*Scalar {
 func (a *Array) Scalar() (v *Scalar, ok bool) { return nil, false }
 func (a *Array) Array() (v *Array, ok bool)   { return a, true }
 
-func (a *Array) Cmp(Value) int { return -1 }
+func (a *Array) Cmp(v Value) (cmp int, ok bool) {
+	// TODO: If v is Undefined, this way it becomes an array.
+	// This might not be a desired behaviour.
+	a2, ok := v.Array()
+	if !ok {
+		return -1, false
+	}
+
+	// Always return false as the second return value
+	// as it's not possible to compare arrays using
+	// <, >, <= or >=.
+
+	if len(a.keys) != len(a2.keys) {
+		return -1, false
+	}
+	if a.associative != a2.associative {
+		return -1, false
+	}
+	for i, k := range a.keys {
+		k2 := a2.keys[i]
+		if cmp, _ := k.Cmp(k2); cmp != 0 {
+			return -1, false
+		}
+		if cmp, _ := a.m[*k].Cmp(a2.m[*k2]); cmp != 0 {
+			return -1, false
+		}
+	}
+	return 0, false
+}
 
 func (a *Array) String() string {
 	var buf bytes.Buffer

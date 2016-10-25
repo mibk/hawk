@@ -198,7 +198,11 @@ func (e *BinaryExpr) Eval(w io.Writer) value.Value {
 		}
 		return value.NewBool(rval.Bool())
 	default:
-		cmp := e.left.Eval(w).Cmp(e.right.Eval(w))
+		l, r := e.left.Eval(w), e.right.Eval(w)
+		cmp, ok := l.Cmp(r)
+		if !ok && e.op != Eq && e.op != NotEq {
+			throw("cannot compare %V and %V using <, >, <=, or >=", l, r)
+		}
 		var b bool
 		switch e.op {
 		case Eq:

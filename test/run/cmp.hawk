@@ -1,0 +1,46 @@
+BEGIN {
+	// ==
+	tests = [
+		// a, b, eq?
+		["", "", true],
+		["", u1, true],
+		["a", u2, false],
+		[[], u3, true],
+		[[0], u4, false],
+		[0, u5, true],
+		[1, u6, false],
+		[false, u7, true],
+		[true, u8, false],
+		[[], "", false],
+		[[], [], true],
+		[["a", "b"], ["a", "b"], true],
+		[["a", "b"], ["b", "a"], false],
+		[5, 5, true],
+		[0, 1, false],
+		[false, false, true],
+		[false, true, false],
+	]
+
+	for i, tt in tests {
+		if (tt[0] == tt[1]) != tt[2] {
+			printf "testEqual[%d]: '%v' should%s be equal to '%v'\n",
+				i, tt[0], (tt[2] ? "" : "n't"), tt[1]
+		}
+	}
+
+	// <
+	tests = [
+		["", undef, false],
+		["ah", "bh", true],
+		["bh", "ah", false],
+		[3, 5, true],
+		[5, 3, false],
+	]
+
+	for i, tt in tests {
+		if (tt[0] < tt[1]) != tt[2] {
+			printf "testLess[%d]: '%v' should%s be less than '%v'\n",
+				i, tt[0], (tt[2] ? "" : "n't"), tt[1]
+		}
+	}
+}

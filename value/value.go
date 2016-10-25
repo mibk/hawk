@@ -14,10 +14,22 @@ const (
 )
 
 type Value interface {
+	// Scalar tries to convert the value into a scalar value.
 	Scalar() (v *Scalar, ok bool)
+
+	// Array tries to convert the value into an array value.
 	Array() (a *Array, ok bool)
-	Cmp(Value) int
+
+	// Cmp returns an integer comparing two values (the receiver r and the
+	// parameter v), and a boolean indicating whether it is possible to compare
+	// the values using <, >, <= or >=. The result will be 0 if r == v, -1 if
+	// r < v, and +1 if r > v.
+	Cmp(Value) (cmp int, ok bool)
+
+	// String returns a string representation of the value.
 	String() string
+
+	// Len returns the length of the variable.
 	Len() int
 
 	// Encode encodes value to string in such a way that the resulting
@@ -63,16 +75,16 @@ func (v *Scalar) Type() string {
 	panic("unknown scalar type")
 }
 
-func (v *Scalar) Cmp(w Value) int {
+func (v *Scalar) Cmp(w Value) (cmp int, ok bool) {
 	v2, ok := w.Scalar()
 	if !ok {
-		// TODO: Fix case when the values are uncomparable.
-		return -1
+		return -1, false
 	}
 	if v.typ == v2.typ {
-		return v.cmp(v2)
+		return v.cmp(v2), true
 	}
-	return v.Number().cmp(v2.Number())
+	// TODO: Don't use comparing numbers as a fallback.
+	return v.Number().cmp(v2.Number()), true
 }
 
 func (v *Scalar) cmp(b *Scalar) int {
@@ -103,7 +115,8 @@ func (v *Scalar) Float64() float64 { return v.Number().number }
 func (v *Scalar) Int() int         { return int(v.Number().number) }
 
 func (v *Scalar) Bool() bool {
-	return v.Cmp(NewBool(true)) == 0
+	cmp, _ := v.Cmp(NewBool(true))
+	return cmp == 0
 }
 
 func (v *Scalar) String() string {

@@ -35,13 +35,14 @@ func (u *Undefined) Array() (a *Array, ok bool) {
 	return u.arr, true
 }
 
-func (u *Undefined) Cmp(v Value) int {
+func (u *Undefined) Cmp(v Value) (cmp int, ok bool) {
 	if u.arr != nil {
 		return u.arr.Cmp(v)
 	}
 	var eq bool
 	switch v := v.(type) {
 	case *Scalar:
+		ok = true
 		switch v.typ {
 		case String:
 			eq = v.string == ""
@@ -52,9 +53,9 @@ func (u *Undefined) Cmp(v Value) int {
 		eq = v.Len() == 0
 	}
 	if eq {
-		return 0
+		return 0, ok
 	}
-	return -1
+	return -1, ok
 }
 
 func (u *Undefined) String() string {

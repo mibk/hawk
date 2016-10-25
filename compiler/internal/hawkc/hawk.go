@@ -1,5 +1,5 @@
 //line hawk.y:2
-package compiler
+package hawkc
 
 import __yyfmt__ "fmt"
 

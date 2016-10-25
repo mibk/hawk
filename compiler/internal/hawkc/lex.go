@@ -1,4 +1,4 @@
-package compiler
+package hawkc
 
 //go:generate -command yacc go tool yacc
 //go:generate yacc -o hawk.go hawk.y

@@ -1,4 +1,4 @@
-package compiler
+package hawkc
 
 func analyse(prog *Program) {
 	for _, fn := range prog.funcs {

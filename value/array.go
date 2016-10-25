@@ -5,6 +5,32 @@ import (
 	"fmt"
 )
 
+// MergeArrays merges two array and returns a new array that
+// will be a union of them. If at least one of the array is
+// associative, the union will contain all the keys from the
+// first array and all the non-conflicting keys from the second
+// one. Otherwise, all the values from both arrays are one by one
+// put under keys from 0 to len(a)+len(a2)-1.
+func MergeArrays(a, a2 *Array) *Array {
+	z := NewArray()
+	for _, k := range a.keys {
+		z.Put(k, a.m[*k])
+	}
+	if !a.associative && !a2.associative {
+		for _, k := range a2.keys {
+			z.Put(nil, a2.m[*k])
+		}
+	} else {
+		for _, k := range a2.keys {
+			if _, ok := z.m[*k]; ok {
+				continue
+			}
+			z.Put(k, a2.m[*k])
+		}
+	}
+	return z
+}
+
 type Array struct {
 	ai          int // autoincrement
 	associative bool
@@ -33,10 +59,10 @@ func (a *Array) Put(k *Scalar, v Value) {
 		if _, ok := a.m[*k]; !ok {
 			a.keys = append(a.keys, k)
 			if !a.associative {
-				a.ai++
 				if k.typ != Number || k.number != float64(a.ai) {
 					a.associative = true
 				}
+				a.ai++
 			}
 		}
 	}

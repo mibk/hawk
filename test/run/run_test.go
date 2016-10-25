@@ -29,7 +29,7 @@ func TestRun(t *testing.T) {
 				var out bytes.Buffer
 				fin, _ := os.Open(progname + ".in")
 				if err := prog.Run(&out, fin); err != nil {
-					t.Errorf("unexpected err: %v", err)
+					t.Errorf("unexpected runtime err: %v", err)
 					return
 				}
 

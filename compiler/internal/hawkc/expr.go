@@ -152,9 +152,18 @@ func (e *BinaryExpr) Eval(w io.Writer) value.Value {
 	var z value.Scalar
 	switch e.op {
 	case Add, Sub, Mul, Div, Mod, Concat:
-		l, ok := e.left.Eval(w).Scalar()
-		r, ok2 := e.right.Eval(w).Scalar()
+		v, v2 := e.left.Eval(w), e.right.Eval(w)
+		l, ok := v.Scalar()
+		r, ok2 := v2.Scalar()
 		if !ok && !ok2 {
+			if e.op == Add {
+				a, ok := v.Array()
+				a2, ok2 := v2.Array()
+				if !ok && !ok2 {
+					panic(fmt.Sprintf("unexpected value types %V and %V", v, v2))
+				}
+				return value.MergeArrays(a, a2)
+			}
 			throw("unsupported type for binary expression")
 		}
 		switch e.op {

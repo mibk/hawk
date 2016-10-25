@@ -11,4 +11,13 @@ BEGIN {
 	print arr[len(arr)-1]
 	print arr
 	printf "%#v\n", arr
+
+	// Join arrays.
+	a = [3, 4, 7]; b = [2, 9, 6];
+	print a + b
+
+	// Join maps.
+	m[1] = "i"; m["two"] = 2
+	n["nine"] = []; n[1] = "I"
+	print "keys aren't printed yet", m + n;
 }

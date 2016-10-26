@@ -9,6 +9,18 @@ import (
 
 type ScalarType int
 
+func (typ ScalarType) String() string {
+	switch typ {
+	case String:
+		return "string"
+	case Bool:
+		return "bool"
+	case Number:
+		return "number"
+	}
+	return "<unknown>"
+}
+
 const (
 	String ScalarType = iota
 	Bool
@@ -65,16 +77,8 @@ func NewBool(b bool) *Scalar {
 func (v *Scalar) Scalar() (w *Scalar, ok bool) { return v, true }
 func (v *Scalar) Array() (w *Array, ok bool)   { return nil, false }
 
-func (v *Scalar) Type() string {
-	switch v.typ {
-	case String:
-		return "string"
-	case Bool:
-		return "bool"
-	case Number:
-		return "number"
-	}
-	panic("unknown scalar type")
+func (v *Scalar) Type() ScalarType {
+	return v.typ
 }
 
 func (v *Scalar) Cmp(w Value) (cmp int, ok bool) {

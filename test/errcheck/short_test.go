@@ -78,6 +78,10 @@ var runtimeInvalid = []struct {
 	8:  {`[] < x`, "cannot compare array and array using <, >, <=, or >="},
 	9:  {`[] < 50`, "cannot compare array and number using <, >, <=, or >="},
 	10: {`[] < []`, "cannot compare array and array using <, >, <=, or >="},
+	11: {`"true" ~ true`, "invalid types for regexp matching: string ~ bool"},
+	12: {`"array" ~ []`, "invalid types for regexp matching: string ~ array"},
+	13: {`"14" ~ 14`, "invalid types for regexp matching: string ~ number"},
+	14: {`[] ~ "regexp"`, "invalid types for regexp matching: array ~ string"},
 }
 
 func TestRuntimeErrors(t *testing.T) {

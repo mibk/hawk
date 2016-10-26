@@ -51,6 +51,7 @@ var (
 %left OROR
 %left ANDAND
 %left EQ NE LE GE '<' '>'
+%left '~', NOTMATCH
 %left '.'
 %left '+' '-'
 %left '*' '/' '%'
@@ -365,6 +366,14 @@ expr:
 |	expr '.' expr
 	{
 		$$ = &BinaryExpr{genDebugInfo(), Concat, $1, $3}
+	}
+|	expr '~' expr
+	{
+		$$ = &MatchExpr{genDebugInfo(), $1, $3, true}
+	}
+|	expr NOTMATCH expr
+	{
+		$$ = &MatchExpr{genDebugInfo(), $1, $3, false}
 	}
 
 oexpr:

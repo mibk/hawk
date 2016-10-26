@@ -3,6 +3,7 @@ package hawkc
 import (
 	"fmt"
 	"io"
+	"regexp"
 	"strconv"
 
 	"github.com/mibk/hawk/scan"
@@ -261,6 +262,27 @@ func (e *UnaryExpr) Eval(w io.Writer) value.Value {
 		panic("unknown unary operation")
 	}
 	return &z
+}
+
+type MatchExpr struct {
+	debugInfo
+	X     Expr
+	Y     Expr
+	Match bool
+}
+
+func (m *MatchExpr) Eval(w io.Writer) value.Value {
+	l, r := m.X.Eval(w), m.Y.Eval(w)
+	x, ok := l.Scalar()
+	y, ok2 := r.Scalar()
+	if !ok || !ok2 || y.Type() != value.String {
+		m.throw("invalid types for regexp matching: %V ~ %V", l, r)
+	}
+	rx, err := regexp.Compile(y.String())
+	if err != nil {
+		m.throw("invalid regexp")
+	}
+	return value.NewBool(rx.MatchString(x.String()) == m.Match)
 }
 
 type BasicLit struct {

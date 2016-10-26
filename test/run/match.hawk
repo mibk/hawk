@@ -1,0 +1,19 @@
+BEGIN {
+	tests = [
+		// str, regexp, matches?
+		["Xsdf", "(?i)x.*", true],
+		["034234", "\\d+", true],
+		[false, "^$", false],
+	]
+
+	for i, tt in tests {
+		if (tt[0] ~ tt[1]) != tt[2] {
+			printf "%q should%s match %q",
+				tt[0], (tt[2] ? "" : "n't"), tt[1]
+		}
+	}
+
+	if "A32" !~ "\\w\\d+" {
+		print "\"A32\" should match `\\w\\d+`"
+	}
+}

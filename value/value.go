@@ -7,8 +7,10 @@ import (
 	"strings"
 )
 
+type ScalarType int
+
 const (
-	String = iota
+	String ScalarType = iota
 	Bool
 	Number
 )
@@ -39,7 +41,7 @@ type Value interface {
 }
 
 type Scalar struct {
-	typ    int
+	typ    ScalarType
 	string string
 	number float64
 }

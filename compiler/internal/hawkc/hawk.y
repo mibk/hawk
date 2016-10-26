@@ -7,6 +7,7 @@ import (
 	"io"
 
 	"github.com/mibk/hawk/scan"
+	"github.com/mibk/hawk/value"
 )
 
 var (
@@ -18,7 +19,6 @@ var (
 %}
 
 %union {
-	num       int
 	sym       string
 	symlist   []string
 	decl      Decl
@@ -39,8 +39,7 @@ var (
 %type <blockstmt> blockstmt
 %type <stmtlist>  stmtlist
 
-%token <num>  NUM BOOL
-%token <sym>  IDENT STRING PRINT
+%token <sym>  IDENT NUM BOOL STRING PRINT
 %token        BEGIN END
 %token        IF ELSE
 %token        FOR IN BREAK CONTINUE
@@ -208,11 +207,11 @@ stmt:
 	//	semantic analysis, but for now...
 |	IDENT INC
 	{
-		$$ = &AssignStmt{genDebugInfo(), ast, &Ident{ast, $1}, &BinaryExpr{genDebugInfo(), Add, &Ident{ast, $1}, Lit(1)}}
+		$$ = &AssignStmt{genDebugInfo(), ast, &Ident{ast, $1}, &BinaryExpr{genDebugInfo(), Add, &Ident{ast, $1}, BasicLit{value.Number, "1"}}}
 	}
 |	IDENT DEC
 	{
-		$$ = &AssignStmt{genDebugInfo(), ast, &Ident{ast, $1}, &BinaryExpr{genDebugInfo(), Sub, &Ident{ast, $1}, Lit(1)}}
+		$$ = &AssignStmt{genDebugInfo(), ast, &Ident{ast, $1}, &BinaryExpr{genDebugInfo(), Sub, &Ident{ast, $1}, BasicLit{value.Number, "1"}}}
 	}
 |	ifstmt
 	{
@@ -381,15 +380,15 @@ oexpr:
 uexpr:
 	NUM
 	{
-		$$ = Lit($1)
+		$$ = BasicLit{value.Number, $1}
 	}
 |	STRING
 	{
-		$$ = StringLit($1)
+		$$ = BasicLit{value.String, $1}
 	}
 |	BOOL
 	{
-		$$ = BoolLit($1 != 0)
+		$$ = BasicLit{value.Bool, $1}
 	}
 |	'+' uexpr
 	{
@@ -457,7 +456,7 @@ ocomma:
 func Compile(src io.Reader) (*Program, error) {
 	scanner = new(scan.Scanner)
 	defaultAction = &BlockStmt{[]Stmt{
-		&PrintStmt{Fun: "print", Args: []Expr{&FieldExpr{sc: scanner, X: Lit(0)}}},
+		&PrintStmt{Fun: "print", Args: []Expr{&FieldExpr{sc: scanner, X: BasicLit{value.Number, "0"}}}},
 	}}
 	ast = NewProgram(scanner)
 	lexlineno = 1

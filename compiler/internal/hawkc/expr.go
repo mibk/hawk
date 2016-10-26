@@ -3,6 +3,7 @@ package hawkc
 import (
 	"fmt"
 	"io"
+	"strconv"
 
 	"github.com/mibk/hawk/scan"
 	"github.com/mibk/hawk/value"
@@ -262,31 +263,34 @@ func (e *UnaryExpr) Eval(w io.Writer) value.Value {
 	return &z
 }
 
-type BoolLit bool
-
-func (b BoolLit) Eval(io.Writer) value.Value {
-	return value.NewBool(bool(b))
+type BasicLit struct {
+	Type value.ScalarType
+	Val  string
 }
 
-type Lit int
-
-func (l Lit) Eval(io.Writer) value.Value {
-	return value.NewNumber(float64(l))
-}
-
-type StringLit string
-
-func (s StringLit) Eval(io.Writer) value.Value {
-	return value.NewString(string(s))
+func (b BasicLit) Eval(io.Writer) value.Value {
+	switch b.Type {
+	case value.Bool:
+		return value.NewBool(b.Val == "true")
+	case value.Number:
+		n, err := strconv.Atoi(b.Val)
+		if err != nil {
+			panic(err)
+		}
+		return value.NewNumber(float64(n))
+	case value.String:
+		return value.NewString(b.Val)
+	}
+	panic("unknown type")
 }
 
 type ArrayLit struct {
-	exprs []Expr
+	Val []Expr
 }
 
 func (al *ArrayLit) Eval(w io.Writer) value.Value {
 	arr := value.NewArray()
-	for _, e := range al.exprs {
+	for _, e := range al.Val {
 		arr.Put(nil, e.Eval(w))
 	}
 	return arr

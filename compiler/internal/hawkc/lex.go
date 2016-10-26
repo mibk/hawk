@@ -7,7 +7,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"strconv"
 	"unicode"
 	"unicode/utf8"
 )
@@ -156,7 +155,7 @@ func (l *yyLex) lexNum(yylval *yySymType) int {
 		l.buf.WriteRune(l.last)
 	}
 	l.backup()
-	yylval.num, _ = strconv.Atoi(l.buf.String())
+	yylval.sym = l.buf.String()
 	return NUM
 }
 
@@ -174,11 +173,8 @@ func (l *yyLex) lexIdent(yylval *yySymType) int {
 	name := l.buf.String()
 	if tok, ok := isSymbol(name); ok {
 		return tok
-	} else if name == "true" {
-		yylval.num = 1
-		return BOOL
-	} else if name == "false" {
-		yylval.num = 0
+	} else if name == "true" || name == "false" {
+		yylval.sym = name
 		return BOOL
 	}
 	yylval.sym = name

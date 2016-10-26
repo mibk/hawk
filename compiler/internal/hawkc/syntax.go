@@ -11,19 +11,19 @@ import (
 type Decl interface{}
 
 type Scope interface {
-	Var(name string) value.Value
-	SetVar(name string, v value.Value)
+	Get(name string) value.Value
+	Put(name string, v value.Value)
 }
 
 type Program struct {
-	sc       *scan.Scanner
-	begin    []Stmt
-	pActions []Stmt
-	end      []Stmt
-
+	sc     *scan.Scanner
 	vars   map[string]value.Value
 	funcs  map[string]*FuncDecl
 	retval value.Value
+
+	Begins   []Stmt
+	Pactions []Stmt
+	Ends     []Stmt
 }
 
 func NewProgram(sc *scan.Scanner) *Program {
@@ -34,7 +34,7 @@ func NewProgram(sc *scan.Scanner) *Program {
 	}
 }
 
-func (p *Program) Var(name string) value.Value {
+func (p *Program) Get(name string) value.Value {
 	if v, ok := p.vars[name]; ok {
 		return v
 	}
@@ -54,7 +54,7 @@ func (p *Program) Var(name string) value.Value {
 	return v
 }
 
-func (p *Program) SetVar(name string, v value.Value) {
+func (p *Program) Put(name string, v value.Value) {
 	p.vars[name] = v
 }
 
@@ -74,7 +74,7 @@ func (p *Program) Run(out io.Writer, in scan.Source) (err error) {
 	if p.anyPatternActions() {
 		p.sc.SetSource(in)
 		for p.sc.Scan() {
-			for _, a := range p.pActions {
+			for _, a := range p.Pactions {
 				a.Exec(out)
 			}
 		}
@@ -88,19 +88,19 @@ func (p *Program) Run(out io.Writer, in scan.Source) (err error) {
 }
 
 func (p *Program) Begin(w io.Writer) {
-	for _, a := range p.begin {
+	for _, a := range p.Begins {
 		a.Exec(w)
 	}
 }
 
 func (p *Program) End(w io.Writer) {
-	for _, a := range p.end {
+	for _, a := range p.Ends {
 		a.Exec(w)
 	}
 }
 
 func (p *Program) anyPatternActions() bool {
-	return len(p.pActions) > 0 || len(p.end) > 0
+	return len(p.Pactions) > 0 || len(p.Ends) > 0
 }
 
 type BeginAction struct {
@@ -112,29 +112,29 @@ type EndAction struct {
 }
 
 type PatternAction struct {
-	pattern Expr
-	action  Stmt
+	Pattern Expr
+	Body    Stmt
 }
 
 func (p *PatternAction) Exec(w io.Writer) Status {
-	if p.pattern != nil {
-		v, ok := p.pattern.Eval(w).Scalar()
+	if p.Pattern != nil {
+		v, ok := p.Pattern.Eval(w).Scalar()
 		if !ok {
-			throw("pattern in an action must be a scalar value")
+			throw("Pattern in an Body must be a scalar value")
 		}
 		if !v.Bool() {
 			return StatusNone
 		}
 	}
-	p.action.Exec(w)
+	p.Body.Exec(w)
 	return StatusNone
 }
 
 type FuncDecl struct {
 	scope *FuncScope
-	name  string
-	args  []string
-	body  Stmt
+	Name  string
+	Args  []string
+	Body  Stmt
 }
 
 type FuncScope struct {
@@ -149,7 +149,7 @@ func (f *FuncScope) Pull() {
 	f.stack = f.stack[:len(f.stack)-1]
 }
 
-func (f *FuncScope) Var(name string) value.Value {
+func (f *FuncScope) Get(name string) value.Value {
 	s := f.currScope()
 	if v, ok := s[name]; ok {
 		return v
@@ -159,7 +159,7 @@ func (f *FuncScope) Var(name string) value.Value {
 	return v
 }
 
-func (f *FuncScope) SetVar(name string, v value.Value) {
+func (f *FuncScope) Put(name string, v value.Value) {
 	f.currScope()[name] = v
 }
 

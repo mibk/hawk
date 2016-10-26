@@ -131,7 +131,7 @@ const yyInitialStackSize = 16
 func Compile(src io.Reader) (*Program, error) {
 	scanner = new(scan.Scanner)
 	defaultAction = &BlockStmt{[]Stmt{
-		&PrintStmt{fun: "print", args: []Expr{&FieldExpr{sc: scanner, num: Lit(0)}}},
+		&PrintStmt{Fun: "print", Args: []Expr{&FieldExpr{sc: scanner, X: Lit(0)}}},
 	}}
 	ast = NewProgram(scanner)
 	lexlineno = 1
@@ -688,13 +688,13 @@ yydefault:
 			for _, d := range yyDollar[1].decllist {
 				switch d := d.(type) {
 				case *BeginAction:
-					ast.begin = append(ast.begin, d)
+					ast.Begins = append(ast.Begins, d)
 				case *EndAction:
-					ast.end = append(ast.end, d)
+					ast.Ends = append(ast.Ends, d)
 				case *PatternAction:
-					ast.pActions = append(ast.pActions, d)
+					ast.Pactions = append(ast.Pactions, d)
 				case *FuncDecl:
-					ast.funcs[d.name] = d
+					ast.funcs[d.Name] = d
 				default:
 					panic(fmt.Sprintf("unexpected type: %T", d))
 				}

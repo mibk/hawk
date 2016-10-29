@@ -307,12 +307,12 @@ func (b BasicLit) Eval(io.Writer) value.Value {
 }
 
 type ArrayLit struct {
-	Val []Expr
+	Elems []Expr
 }
 
 func (al *ArrayLit) Eval(w io.Writer) value.Value {
 	arr := value.NewArray()
-	for _, e := range al.Val {
+	for _, e := range al.Elems {
 		arr.Put(nil, e.Eval(w))
 	}
 	return arr

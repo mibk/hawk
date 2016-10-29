@@ -1,67 +1,119 @@
 package hawkc
 
+import "fmt"
+
+type Analyser struct {
+	scope Scope
+}
+
 func analyse(prog *Program) {
+	a := &Analyser{prog}
+	for _, p := range prog.Begins {
+		a.walkPactions(p)
+	}
+	for _, p := range prog.Pactions {
+		a.walkPactions(p)
+	}
+	for _, p := range prog.Ends {
+		a.walkPactions(p)
+	}
 	for _, fn := range prog.funcs {
-		walkStmt(fn.Body, fn.scope)
+		a.scope = fn.scope
+		a.walkStmt(fn.Body)
 	}
 }
 
-func walkStmt(stmt Stmt, scope Scope) {
-	if stmt == nil {
+func (a *Analyser) walkPactions(pa Stmt) {
+	if pa == nil {
 		return
 	}
-	switch s := stmt.(type) {
+	switch pa := pa.(type) {
+	case *BeginAction:
+		a.walkStmt(pa.Stmt)
+	case *EndAction:
+		a.walkStmt(pa.Stmt)
+	case *PatternAction:
+		a.walkExpr(pa.X)
+		a.walkStmt(pa.Body)
+	default:
+		panic(fmt.Sprintf("unknown pattern-action: %T", pa))
+	}
+}
+
+func (a *Analyser) walkStmt(s Stmt) {
+	if s == nil {
+		return
+	}
+	switch s := s.(type) {
+	case *ExprStmt:
+		a.walkExpr(s.X)
 	case *BlockStmt:
 		for _, s := range s.List {
-			walkStmt(s, scope)
+			a.walkStmt(s)
 		}
+	case *PipeStmt:
+		a.walkStmt(s.Stmt)
 	case *AssignStmt:
-		s.scope = scope
-		walkExpr(s.Left, scope)
-		walkExpr(s.Right, scope)
+		s.scope = a.scope
+		a.walkExpr(s.Left)
+		a.walkExpr(s.Right)
 	case *IfStmt:
-		walkExpr(s.X, scope)
-		walkStmt(s.Body, scope)
-		walkStmt(s.Else, scope)
+		a.walkExpr(s.X)
+		a.walkStmt(s.Body)
+		a.walkStmt(s.Else)
 	case *ForStmt:
-		walkStmt(s.Init, scope)
-		walkExpr(s.Cond, scope)
-		walkStmt(s.Post, scope)
-		walkStmt(s.Body, scope)
+		a.walkStmt(s.Init)
+		a.walkExpr(s.Cond)
+		a.walkStmt(s.Post)
+		a.walkStmt(s.Body)
 	case *ForeachStmt:
-		walkExpr(s.Key, scope)
-		walkExpr(s.Val, scope)
-		walkStmt(s.Body, scope)
+		a.walkExpr(s.Key)
+		if s.Val != nil {
+			a.walkExpr(s.Val)
+		}
+		a.walkExpr(s.X)
+		a.walkStmt(s.Body)
+	case *StatusStmt:
 	case *ReturnStmt:
-		walkExpr(s.X, scope)
+		a.walkExpr(s.X)
 	case *PrintStmt:
 		for _, e := range s.Args {
-			walkExpr(e, scope)
+			a.walkExpr(e)
 		}
 	}
 }
 
-func walkExpr(expr Expr, scope Scope) {
-	if expr == nil {
+func (a *Analyser) walkExpr(e Expr) {
+	if e == nil {
 		return
 	}
-	switch e := expr.(type) {
+	switch e := e.(type) {
 	case *TernaryExpr:
-		walkExpr(e.Cond, scope)
-		walkExpr(e.Yes, scope)
-		walkExpr(e.No, scope)
+		a.walkExpr(e.Cond)
+		a.walkExpr(e.Yes)
+		a.walkExpr(e.No)
 	case *CallExpr:
 		for _, e := range e.Args {
-			walkExpr(e, scope)
+			a.walkExpr(e)
 		}
 	case *Ident:
-		e.scope = scope
+		e.scope = a.scope
 	case *FieldExpr:
-		walkExpr(e.X, scope)
+		a.walkExpr(e.X)
+	case *IndexExpr:
+		a.walkExpr(e.Index)
+		a.walkExpr(e.X)
 	case *BinaryExpr:
-		walkExpr(e.X, scope)
-		walkExpr(e.Y, scope)
+		a.walkExpr(e.X)
+		a.walkExpr(e.Y)
 	case *UnaryExpr:
-		walkExpr(e.X, scope)
+		a.walkExpr(e.X)
+	case *MatchExpr:
+		a.walkExpr(e.X)
+		a.walkExpr(e.Y)
+	case *ArrayLit:
+		for _, e := range e.Elems {
+			a.walkExpr(e)
+		}
 	}
 }

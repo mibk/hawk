@@ -112,13 +112,13 @@ type EndAction struct {
 }
 
 type PatternAction struct {
-	Pattern Expr
-	Body    Stmt
+	X    Expr
+	Body Stmt
 }
 
 func (p *PatternAction) Exec(w io.Writer) Status {
-	if p.Pattern != nil {
-		v, ok := p.Pattern.Eval(w).Scalar()
+	if p.X != nil {
+		v, ok := p.X.Eval(w).Scalar()
 		if !ok {
 			throw("Pattern in an Body must be a scalar value")
 		}

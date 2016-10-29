@@ -174,45 +174,45 @@ stmt:
 	}
 |	IDENT '=' expr
 	{
-		$$ = &AssignStmt{genDebugInfo(), ast, &Ident{ast, $1}, $3}
+		$$ = &AssignStmt{genDebugInfo(), nil, &Ident{Name: $1}, $3}
 	}
 |	IDENT '[' ']' '=' expr
 	{
-		$$ = &AssignStmt{genDebugInfo(), ast, &IndexExpr{genDebugInfo(), &Ident{ast, $1}, nil}, $5}
+		$$ = &AssignStmt{genDebugInfo(), nil, &IndexExpr{genDebugInfo(), &Ident{Name: $1}, nil}, $5}
 	}
 |	IDENT '[' expr ']' '=' expr
 	{
-		$$ = &AssignStmt{genDebugInfo(), ast, &IndexExpr{genDebugInfo(), &Ident{ast, $1}, $3}, $6}
+		$$ = &AssignStmt{genDebugInfo(), nil, &IndexExpr{genDebugInfo(), &Ident{Name: $1}, $3}, $6}
 	}
 |	IDENT ADDEQ expr
 	{
-		$$ = &AssignStmt{genDebugInfo(), ast, &Ident{ast, $1}, &BinaryExpr{genDebugInfo(), Add, &Ident{ast, $1}, $3}}
+		$$ = &AssignStmt{genDebugInfo(), nil, &Ident{Name: $1}, &BinaryExpr{genDebugInfo(), Add, &Ident{Name: $1}, $3}}
 	}
 |	IDENT SUBEQ expr
 	{
-		$$ = &AssignStmt{genDebugInfo(), ast, &Ident{ast, $1}, &BinaryExpr{genDebugInfo(), Sub, &Ident{ast, $1}, $3}}
+		$$ = &AssignStmt{genDebugInfo(), nil, &Ident{Name: $1}, &BinaryExpr{genDebugInfo(), Sub, &Ident{Name: $1}, $3}}
 	}
 |	IDENT MULEQ expr
 	{
-		$$ = &AssignStmt{genDebugInfo(), ast, &Ident{ast, $1}, &BinaryExpr{genDebugInfo(), Mul, &Ident{ast, $1}, $3}}
+		$$ = &AssignStmt{genDebugInfo(), nil, &Ident{Name: $1}, &BinaryExpr{genDebugInfo(), Mul, &Ident{Name: $1}, $3}}
 	}
 |	IDENT DIVEQ expr
 	{
-		$$ = &AssignStmt{genDebugInfo(), ast, &Ident{ast, $1}, &BinaryExpr{genDebugInfo(), Div, &Ident{ast, $1}, $3}}
+		$$ = &AssignStmt{genDebugInfo(), nil, &Ident{Name: $1}, &BinaryExpr{genDebugInfo(), Div, &Ident{Name: $1}, $3}}
 	}
 |	IDENT MODEQ expr
 	{
-		$$ = &AssignStmt{genDebugInfo(), ast, &Ident{ast, $1}, &BinaryExpr{genDebugInfo(), Mod, &Ident{ast, $1}, $3}}
+		$$ = &AssignStmt{genDebugInfo(), nil, &Ident{Name: $1}, &BinaryExpr{genDebugInfo(), Mod, &Ident{Name: $1}, $3}}
 	}
 	// TODO: should rather be 'uexpr INC' and catch unwanted usage during
 	//	semantic analysis, but for now...
 |	IDENT INC
 	{
-		$$ = &AssignStmt{genDebugInfo(), ast, &Ident{ast, $1}, &BinaryExpr{genDebugInfo(), Add, &Ident{ast, $1}, BasicLit{value.Number, "1"}}}
+		$$ = &AssignStmt{genDebugInfo(), nil, &Ident{Name: $1}, &BinaryExpr{genDebugInfo(), Add, &Ident{Name: $1}, BasicLit{value.Number, "1"}}}
 	}
 |	IDENT DEC
 	{
-		$$ = &AssignStmt{genDebugInfo(), ast, &Ident{ast, $1}, &BinaryExpr{genDebugInfo(), Sub, &Ident{ast, $1}, BasicLit{value.Number, "1"}}}
+		$$ = &AssignStmt{genDebugInfo(), nil, &Ident{Name: $1}, &BinaryExpr{genDebugInfo(), Sub, &Ident{Name: $1}, BasicLit{value.Number, "1"}}}
 	}
 |	ifstmt
 	{
@@ -290,11 +290,11 @@ forstmt:
 foreachstmt:
 	FOR IDENT IN expr blockstmt
 	{
-		$$ = &ForeachStmt{genDebugInfo(), &Ident{ast, $2}, nil, $4, $5}
+		$$ = &ForeachStmt{genDebugInfo(), &Ident{Name: $2}, nil, $4, $5}
 	}
 |	FOR IDENT ',' IDENT IN expr blockstmt
 	{
-		$$ = &ForeachStmt{genDebugInfo(), &Ident{ast, $2}, &Ident{ast, $4}, $6, $7}
+		$$ = &ForeachStmt{genDebugInfo(), &Ident{Name: $2}, &Ident{Name: $4}, $6, $7}
 	}
 
 
@@ -417,7 +417,7 @@ uexpr:
 	}
 |	IDENT
 	{
-		$$ = &Ident{ast, $1}
+		$$ = &Ident{Name: $1}
 	}
 |	IDENT '(' ')'
 	{
@@ -438,7 +438,7 @@ uexpr:
 	// TODO: Allow more expr than just IDENT.
 |	IDENT '[' expr ']'
 	{
-		$$ = &IndexExpr{genDebugInfo(), &Ident{ast, $1}, $3}
+		$$ = &IndexExpr{genDebugInfo(), &Ident{Name: $1}, $3}
 	}
 
 exprlist:

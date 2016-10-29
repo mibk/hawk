@@ -11,10 +11,9 @@ import (
 )
 
 var (
-	scanner *scan.Scanner
 	ast    *Program
 
-	defaultAction *BlockStmt
+	defaultAction = &BlockStmt{[]Stmt{&PrintStmt{Fun: "print"}}}
 )
 %}
 
@@ -242,6 +241,10 @@ stmt:
 	{
 		$$ = &PrintStmt{genDebugInfo(), $1, $2}
 	}
+|	PRINT
+	{
+		$$ = &PrintStmt{genDebugInfo(), $1, nil}
+	}
 
 ostmt:
 	{
@@ -309,7 +312,7 @@ expr:
 	}
 |	'$' uexpr
 	{
-		$$ = &FieldExpr{genDebugInfo(), scanner, $2}
+		$$ = &FieldExpr{genDebugInfo(), nil, $2}
 	}
 |	expr OROR expr
 	{
@@ -463,15 +466,12 @@ ocomma:
 // Compile compiles a Hawk program from src. It is not safe
 // for concurrent use.
 func Compile(src io.Reader) (*Program, error) {
-	scanner = new(scan.Scanner)
-	defaultAction = &BlockStmt{[]Stmt{
-		&PrintStmt{Fun: "print", Args: []Expr{&FieldExpr{sc: scanner, X: BasicLit{value.Number, "0"}}}},
-	}}
-	ast = NewProgram(scanner)
+	sc := new(scan.Scanner)
+	ast = NewProgram(sc)
 	lexlineno = 1
 	nlsemi = false
 	l := &yyLex{reader: bufio.NewReader(src)}
 	yyParse(l)
-	analyse(ast)
+	analyse(ast, sc)
 	return ast, l.err
 }

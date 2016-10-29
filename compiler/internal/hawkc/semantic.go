@@ -1,13 +1,19 @@
 package hawkc
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/mibk/hawk/scan"
+	"github.com/mibk/hawk/value"
+)
 
 type Analyser struct {
 	scope Scope
+	sc    *scan.Scanner
 }
 
-func analyse(prog *Program) {
-	a := &Analyser{prog}
+func analyse(prog *Program, sc *scan.Scanner) {
+	a := &Analyser{prog, sc}
 	for _, p := range prog.Begins {
 		a.walkPactions(p)
 	}
@@ -77,6 +83,9 @@ func (a *Analyser) walkStmt(s Stmt) {
 	case *ReturnStmt:
 		a.walkExpr(s.X)
 	case *PrintStmt:
+		if s.Fun == "print" && len(s.Args) == 0 {
+			s.Args = a.defaultPrintArgs()
+		}
 		for _, e := range s.Args {
 			a.walkExpr(e)
 		}
@@ -99,6 +108,7 @@ func (a *Analyser) walkExpr(e Expr) {
 	case *Ident:
 		e.scope = a.scope
 	case *FieldExpr:
+		e.sc = a.sc
 		a.walkExpr(e.X)
 	case *IndexExpr:
 		a.walkExpr(e.Index)
@@ -116,4 +126,8 @@ func (a *Analyser) walkExpr(e Expr) {
 			a.walkExpr(e)
 		}
 	}
+}
+
+func (a *Analyser) defaultPrintArgs() []Expr {
+	return []Expr{&FieldExpr{X: BasicLit{value.Number, "0"}}}
 }

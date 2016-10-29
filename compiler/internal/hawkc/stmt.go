@@ -217,6 +217,7 @@ func (r *ReturnStmt) Exec(w io.Writer) Status {
 
 type PrintStmt struct {
 	debugInfo
+	root *Program
 	Fun  string
 	Args []Expr
 }
@@ -228,7 +229,13 @@ func (p *PrintStmt) Exec(w io.Writer) Status {
 		for _, e := range p.Args {
 			vals = append(vals, e.Eval(w))
 		}
-		fmt.Fprintln(w, vals...)
+		for i, v := range vals {
+			if i != 0 {
+				fmt.Fprint(w, p.root.outputFieldSep)
+			}
+			fmt.Fprint(w, v)
+		}
+		fmt.Fprintln(w)
 	case "printf":
 		format, vals, err := formatPrintfArgs(w, "printf", p.Args)
 		if err != nil {

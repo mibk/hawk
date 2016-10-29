@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"log"
+	"regexp"
 	"strings"
 )
 
@@ -55,9 +56,10 @@ func (ms *multiSource) Name() string {
 // A Scanner is used for splitting input into rows and
 // splitting rows into fields.
 type Scanner struct {
-	src Source // To retrieve filename only.
-	br  *bufio.Reader
-	err error // sticky err
+	src      Source // To retrieve filename only.
+	br       *bufio.Reader
+	fieldsRx *regexp.Regexp
+	err      error // sticky err
 
 	recNumber     int
 	fileRecNumber int
@@ -70,6 +72,15 @@ func (sc *Scanner) SetSource(src Source) {
 	sc.src = src
 	sc.br = bufio.NewReader(src)
 	sc.recNumber = 0
+}
+
+// SetFieldSep sets regexp rx that will be used to separate
+// row into fields.
+func (sc *Scanner) SetFieldSep(rx string) {
+	if sc.err != nil {
+		return
+	}
+	sc.fieldsRx, sc.err = regexp.Compile(rx)
 }
 
 // Scan scans another record and parses it into fields. It there
@@ -103,7 +114,17 @@ readRecord:
 
 func (sc *Scanner) splitRecord(rec []byte) {
 	sc.rec = string(bytes.TrimRight(rec, "\r\n"))
-	sc.fields = strings.Fields(sc.rec)
+	if sc.fieldsRx != nil {
+		sc.fields = sc.fieldsRx.Split(sc.rec, -1)
+		if len(sc.fields) > 0 && sc.fields[0] == "" {
+			sc.fields = sc.fields[1:]
+		}
+		if len(sc.fields) > 0 && sc.fields[len(sc.fields)-1] == "" {
+			sc.fields = sc.fields[:len(sc.fields)-1]
+		}
+	} else {
+		sc.fields = strings.Fields(sc.rec)
+	}
 }
 
 func (sc *Scanner) Err() error {

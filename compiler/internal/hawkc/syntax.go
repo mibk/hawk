@@ -21,6 +21,8 @@ type Program struct {
 	funcs  map[string]*FuncDecl
 	retval value.Value
 
+	outputFieldSep string // for print function
+
 	Begins   []Stmt
 	Pactions []Stmt
 	Ends     []Stmt
@@ -31,6 +33,8 @@ func NewProgram(sc *scan.Scanner) *Program {
 		sc:    sc,
 		vars:  make(map[string]value.Value),
 		funcs: make(map[string]*FuncDecl),
+
+		outputFieldSep: " ",
 	}
 }
 
@@ -55,7 +59,14 @@ func (p *Program) Get(name string) value.Value {
 }
 
 func (p *Program) Put(name string, v value.Value) {
-	p.vars[name] = v
+	switch name {
+	case "FS":
+		p.sc.SetFieldSep(v.String())
+	case "OFS":
+		p.outputFieldSep = v.String()
+	default:
+		p.vars[name] = v
+	}
 }
 
 func (p *Program) Run(out io.Writer, in scan.Source) (err error) {

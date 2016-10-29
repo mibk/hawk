@@ -8,12 +8,13 @@ import (
 )
 
 type Analyser struct {
+	prog  *Program
 	scope Scope
 	sc    *scan.Scanner
 }
 
 func analyse(prog *Program, sc *scan.Scanner) {
-	a := &Analyser{prog, sc}
+	a := &Analyser{prog, prog, sc}
 	for _, p := range prog.Begins {
 		a.walkPactions(p)
 	}
@@ -81,8 +82,10 @@ func (a *Analyser) walkStmt(s Stmt) {
 		a.walkStmt(s.Body)
 	case *StatusStmt:
 	case *ReturnStmt:
+		s.root = a.prog
 		a.walkExpr(s.X)
 	case *PrintStmt:
+		s.root = a.prog
 		if s.Fun == "print" && len(s.Args) == 0 {
 			s.Args = a.defaultPrintArgs()
 		}

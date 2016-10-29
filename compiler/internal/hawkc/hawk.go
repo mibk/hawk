@@ -913,19 +913,19 @@ yydefault:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line hawk.y:237
 		{
-			yyVAL.stmt = &ReturnStmt{ast, yyDollar[2].expr}
+			yyVAL.stmt = &ReturnStmt{X: yyDollar[2].expr}
 		}
 	case 38:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line hawk.y:241
 		{
-			yyVAL.stmt = &PrintStmt{genDebugInfo(), yyDollar[1].sym, yyDollar[2].exprlist}
+			yyVAL.stmt = &PrintStmt{genDebugInfo(), nil, yyDollar[1].sym, yyDollar[2].exprlist}
 		}
 	case 39:
 		yyDollar = yyS[yypt-1 : yypt+1]
 		//line hawk.y:245
 		{
-			yyVAL.stmt = &PrintStmt{genDebugInfo(), yyDollar[1].sym, nil}
+			yyVAL.stmt = &PrintStmt{genDebugInfo(), nil, yyDollar[1].sym, nil}
 		}
 	case 40:
 		yyDollar = yyS[yypt-0 : yypt+1]

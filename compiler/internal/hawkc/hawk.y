@@ -235,15 +235,15 @@ stmt:
 	}
 |	RETURN oexpr
 	{
-		$$ = &ReturnStmt{ast, $2}
+		$$ = &ReturnStmt{X: $2}
 	}
 |	PRINT exprlist
 	{
-		$$ = &PrintStmt{genDebugInfo(), $1, $2}
+		$$ = &PrintStmt{genDebugInfo(), nil, $1, $2}
 	}
 |	PRINT
 	{
-		$$ = &PrintStmt{genDebugInfo(), $1, nil}
+		$$ = &PrintStmt{genDebugInfo(), nil, $1, nil}
 	}
 
 ostmt:

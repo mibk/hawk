@@ -4,5 +4,5 @@ string
 array
 bool
 undefined
-bool:bool
-[0, []]
+bool:%bool
+%[0, []]

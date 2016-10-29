@@ -6,10 +6,10 @@ BEGIN {
 	e = 0 == 0
 
 	for _, v in [a, b, c, d, e, f] {
-		printf "%V\n", v
+		printf "%T\n", v
 	}
 
-	printf "%V:%V\n", true, false
+	printf "%V:%%%V\n", true, false
 
-	printf "%v\n", d
+	printf "%%%v\n", d
 }

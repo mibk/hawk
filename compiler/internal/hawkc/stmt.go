@@ -245,10 +245,26 @@ func formatPrintfArgs(w io.Writer, fname string, exprs []Expr) (string, []interf
 	if len(exprs) == 0 {
 		return "", nil, fmt.Errorf("%s: not enough arguments: 0", fname)
 	}
-	format, args := exprs[0], exprs[1:]
 	var vals []interface{}
-	for _, e := range args {
+	for _, e := range exprs[1:] {
 		vals = append(vals, e.Eval(w))
 	}
-	return format.Eval(w).String(), vals, nil
+
+	// Replace %T with %V.
+	format := []byte(exprs[0].Eval(w).String())
+	inVerb := false
+	for i := 0; i < len(format); i++ {
+		c := format[i]
+		if c == '%' {
+			inVerb = !inVerb
+			continue
+		}
+		if inVerb && (c >= 'a' || c <= 'z') || (c >= 'A' && c <= 'Z') {
+			inVerb = false
+			if c == 'T' {
+				format[i] = 'V'
+			}
+		}
+	}
+	return string(format), vals, nil
 }

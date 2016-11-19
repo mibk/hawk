@@ -33,7 +33,7 @@ func init() {
 func (l *yyLex) Lex(yylval *yySymType) (tok int) {
 	defer func() {
 		switch tok {
-		case IDENT, NUM, STRING, BOOL, BREAK, CONTINUE, INC, DEC, ')', '}', ']':
+		case IDENT, PRINT, NUM, STRING, BOOL, BREAK, CONTINUE, INC, DEC, ')', '}', ']':
 			nlsemi = true
 		default:
 			nlsemi = false

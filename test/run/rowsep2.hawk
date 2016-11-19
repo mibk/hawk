@@ -1,7 +1,7 @@
 BEGIN {
 	ORS = ".\n"
 }; {
-	print; // TODO: Fix the necessity of ;
+	print
 	if NR == 2 {
 		RS = ";+"
 	}

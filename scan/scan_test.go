@@ -30,6 +30,9 @@ func TestRxReader(t *testing.T) {
 			[]string{"AA", "BB", "", "DDD"}},
 		5: {`\.+`, stringSrcs("123456..", "...45678"),
 			[]string{"123456", "", "45678"}},
+
+		6: {`-+`, dummySource{earlyEOFReader{"A-A-BB"}},
+			[]string{"A", "A", "BB"}},
 	}
 
 	for j, tt := range tests {
@@ -48,7 +51,7 @@ func TestRxReader(t *testing.T) {
 				break
 			}
 			if i >= len(tt.lines) {
-				t.Errorf("test[%d]: unexpected number of lines", j)
+				t.Errorf("test[%d]: unexpected %dth line %q; expected %d", j, i+1, line, len(tt.lines))
 				break
 			}
 			if string(line) != tt.lines[i] {
@@ -74,3 +77,15 @@ type dummySource struct {
 }
 
 func (ds dummySource) Name() string { return "<anonymous>" }
+
+type earlyEOFReader struct {
+	s string
+}
+
+func (r earlyEOFReader) Read(p []byte) (n int, err error) {
+	if len(p) < len(r.s) {
+		panic("p must be longer than s to make the test work")
+	}
+	n = copy(p, r.s)
+	return n, io.EOF
+}

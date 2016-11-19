@@ -183,6 +183,8 @@ func (sc *Scanner) FileRecordNumber() int {
 	return sc.fileRecNumber
 }
 
+// lineReader returns a non-empty slice if and only if
+// the error is nil.
 type lineReader interface {
 	Source // to be able to read buffered data
 	ReadLine() ([]byte, error)
@@ -225,14 +227,19 @@ const bufSize = 4096
 var _bufSize = bufSize // for testing purposes
 
 type rxLineReader struct {
-	buf      [bufSize]byte
-	ptr      []byte
-	src      Source
-	name     string // name of the current source
-	rx       *regexp.Regexp
-	eos      bool
-	finished bool
+	buf  [bufSize]byte
+	ptr  []byte
+	src  Source
+	name string // name of the current source
+	rx   *regexp.Regexp
+	stat int
 }
+
+// stats
+const (
+	sourceEnd = 1
+	finished  = 2
+)
 
 func newRxLineReader(src Source, sepRx *regexp.Regexp) *rxLineReader {
 	return &rxLineReader{
@@ -262,21 +269,21 @@ func (rr *rxLineReader) ReadLine() (line []byte, err error) {
 	var loc []int
 	for {
 		if len(rr.ptr) == 0 {
-		End:
-			if rr.finished {
-				if len(line) > 0 {
-					if loc != nil {
-						line = line[:loc[0]]
-					}
-					return line, nil
-				}
-				return nil, io.EOF
-			}
 			if err := rr.loadBuf(); err != nil {
 				return nil, err
 			}
-			if rr.finished {
-				goto End
+			if rr.stat >= sourceEnd && len(rr.ptr) == 0 {
+				if len(line) > 0 && loc != nil {
+					line = line[:loc[0]]
+				}
+				if rr.stat >= finished {
+					if len(line) > 0 {
+						return line, nil
+					}
+					return line, io.EOF
+				}
+				rr.stat = 0
+				return line, nil
 			}
 		}
 		line = append(line, rr.ptr...)
@@ -284,17 +291,8 @@ func (rr *rxLineReader) ReadLine() (line []byte, err error) {
 
 		if loc == nil || loc[1] == len(line) {
 			rr.ptr = nil
-
-			if rr.eos {
-				rr.eos = false
-				if loc != nil {
-					line = line[:loc[0]]
-				}
-				return line, nil
-			}
 			continue
 		}
-
 		rr.ptr = line[loc[1]:]
 		return line[:loc[0]], nil
 	}
@@ -303,15 +301,21 @@ func (rr *rxLineReader) ReadLine() (line []byte, err error) {
 func (rr *rxLineReader) loadBuf() error { return rr.loadBufN(_bufSize) }
 
 func (rr *rxLineReader) loadBufN(n int) error {
+	if rr.stat >= sourceEnd {
+		return nil
+	}
 	m, err := rr.src.Read(rr.buf[:n])
 	rr.ptr = rr.buf[:m]
-	if err == io.EOF {
-		rr.finished = true
-	} else if err == endOfSource {
+	switch {
+	case err == io.EOF:
+		rr.stat = finished
+	case err == endOfSource:
 		rr.name = rr.src.Name()
-		rr.eos = true
-	} else {
+		rr.stat = sourceEnd
+	case err != nil:
 		return err
+	case m == 0:
+		return errors.New("scan: empty read")
 	}
 	return nil
 }

@@ -1,4 +1,5 @@
 BEGIN {
 	print "Allways\nlook on the\n\"bright\" side\n\tof life!"
 	print '\nDo \'it\''
+	print `\r\n\t``\%x`
 }

@@ -136,6 +136,8 @@ func (l *yyLex) Lex(yylval *yySymType) (tok int) {
 			}
 		case '"', '\'':
 			return l.lexString(r, yylval)
+		case '`':
+			return l.lexRawString(yylval)
 		case ' ', '\t', '\n', '\r':
 			continue // ignore whitespace
 		default:
@@ -247,6 +249,29 @@ loop:
 				l.Errorf("unknown escape character \\%c", l.last)
 			}
 		case quote:
+			break loop
+		}
+		l.buf.WriteRune(r)
+	}
+	yylval.sym = l.buf.String()
+	return STRING
+}
+
+func (l *yyLex) lexRawString(yylval *yySymType) int {
+	l.buf.Reset()
+loop:
+	for {
+		r := l.next()
+		switch r {
+		case eof:
+			l.Error("eof in string literal")
+			return eof
+		case '`':
+			if l.peek() == r {
+				l.next()
+				l.buf.WriteRune(r)
+				continue
+			}
 			break loop
 		}
 		l.buf.WriteRune(r)

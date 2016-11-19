@@ -13,6 +13,8 @@ import (
 // the sources and there are still more sources to process.
 var endOfSource = errors.New("end of source")
 
+// Source is the interface thats wraps io.Reader and provides
+// the Name method.
 type Source interface {
 	io.Reader
 
@@ -20,6 +22,8 @@ type Source interface {
 	Name() string
 }
 
+// MultiSource returns a Source that's the logical concatenation
+// of the provided input sources.
 func MultiSource(sources ...Source) Source {
 	return &multiSource{sources}
 }
@@ -168,7 +172,7 @@ func (sc *Scanner) FieldCount() int {
 	return len(sc.fields)
 }
 
-// Filename returns the name of the currently processed file.
+// Filename returns the name of the currently processed source.
 func (sc *Scanner) Filename() string {
 	return sc.lr.Name()
 }

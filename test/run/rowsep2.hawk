@@ -1,0 +1,8 @@
+BEGIN {
+	ORS = ".\n"
+}; {
+	print; // TODO: Fix the necessity of ;
+	if NR == 2 {
+		RS = ";+"
+	}
+}

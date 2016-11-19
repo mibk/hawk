@@ -1,0 +1,6 @@
+BEGIN {
+	RS = "\\n+"
+	ORS = ";\n"
+}; {
+	print
+}

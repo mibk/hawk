@@ -235,7 +235,7 @@ func (p *PrintStmt) Exec(w io.Writer) Status {
 			}
 			fmt.Fprint(w, v)
 		}
-		fmt.Fprintln(w)
+		fmt.Fprint(w, p.root.outputRowSep)
 	case "printf":
 		format, vals, err := formatPrintfArgs(w, "printf", p.Args)
 		if err != nil {

@@ -21,7 +21,9 @@ type Program struct {
 	funcs  map[string]*FuncDecl
 	retval value.Value
 
-	outputFieldSep string // for print function
+	// For print function.
+	outputRowSep   string
+	outputFieldSep string
 
 	Begins   []Stmt
 	Pactions []Stmt
@@ -34,6 +36,7 @@ func NewProgram(sc *scan.Scanner) *Program {
 		vars:  make(map[string]value.Value),
 		funcs: make(map[string]*FuncDecl),
 
+		outputRowSep:   "\n",
 		outputFieldSep: " ",
 	}
 }
@@ -60,6 +63,10 @@ func (p *Program) Get(name string) value.Value {
 
 func (p *Program) Put(name string, v value.Value) {
 	switch name {
+	case "RS":
+		p.sc.SetRowSep(v.String())
+	case "ORS":
+		p.outputRowSep = v.String()
 	case "FS":
 		p.sc.SetFieldSep(v.String())
 	case "OFS":

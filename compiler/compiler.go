@@ -26,6 +26,9 @@ func Compile(src io.Reader) (*Program, error) {
 	return &Program{*p}, nil
 }
 
+// SetFieldSep sets the field separator, FS, to the sep value.
+func (p *Program) SetFieldSep(sep string) { p.prog.SetFieldSep(sep) }
+
 // Run runs the program. It scans src and writes output to w.
 func (p *Program) Run(w io.Writer, src scan.Source) error {
 	return p.prog.Run(w, src)

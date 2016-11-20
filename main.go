@@ -13,7 +13,8 @@ import (
 )
 
 var (
-	file = flag.String("f", "", "read program from `file`")
+	file     = flag.String("f", "", "read program from `file`")
+	fieldSep = flag.String("F", "", "set the field separator, FS")
 )
 
 func main() {
@@ -59,6 +60,9 @@ func main() {
 	prog, err := compiler.Compile(srcCode)
 	if err != nil {
 		log.Fatalf("%s:%v", name, err)
+	}
+	if *fieldSep != "" {
+		prog.SetFieldSep(*fieldSep)
 	}
 	if err := prog.Run(os.Stdout, input); err != nil {
 		log.Fatal(err)

@@ -3,6 +3,7 @@ package scan
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"regexp"
@@ -86,8 +87,13 @@ func (sc *Scanner) SetRowSep(rx string) {
 	if sc.err != nil {
 		return
 	}
-	sc.rowsRx, sc.err = regexp.Compile(rx)
-	if sc.err == nil && sc.lr != nil {
+	rs, err := regexp.Compile(rx)
+	if err != nil {
+		sc.err = fmt.Errorf("setting RS: %v", err)
+		return
+	}
+	sc.rowsRx = rs
+	if sc.lr != nil {
 		sc.lr = newRxLineReader(sc.lr, sc.rowsRx)
 	}
 }
@@ -98,7 +104,12 @@ func (sc *Scanner) SetFieldSep(rx string) {
 	if sc.err != nil {
 		return
 	}
-	sc.fieldsRx, sc.err = regexp.Compile(rx)
+	fs, err := regexp.Compile(rx)
+	if err != nil {
+		sc.err = fmt.Errorf("setting FS: %v", err)
+		return
+	}
+	sc.fieldsRx = fs
 }
 
 // Scan scans another record and parses it into fields. It there

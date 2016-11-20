@@ -76,6 +76,8 @@ func (p *Program) Put(name string, v value.Value) {
 	}
 }
 
+func (p *Program) SetFieldSep(sep string) { p.sc.SetFieldSep(sep) }
+
 func (p *Program) Run(out io.Writer, in scan.Source) (err error) {
 	defer func() {
 		if err == nil {

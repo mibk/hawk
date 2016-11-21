@@ -13,6 +13,8 @@ import (
 )
 
 var (
+	helpFlag = flag.Bool("help", false, "display an extended help")
+
 	file     = flag.String("f", "", "read program from `file`")
 	fieldSep = flag.String("F", "", "set the field separator, FS")
 )
@@ -22,6 +24,11 @@ func main() {
 	log.SetPrefix("hawk: ")
 	flag.Usage = usage
 	flag.Parse()
+
+	if *helpFlag {
+		fmt.Fprint(os.Stderr, extendedHelp)
+		os.Exit(2)
+	}
 
 	var srcCode io.Reader
 	args := flag.Args()
@@ -69,13 +76,17 @@ func main() {
 	}
 }
 
-func usage() {
-	fmt.Fprintln(os.Stderr, `Usage: hawk 'program' [file ...]
+const shortHelp = `Usage: hawk 'program' [file ...]
   or:  hawk -f progfile [file ...]
 
-Hawk is an Awk clone. Program is a set of PATTERN { ACTION } pairs. Hawk reads
+Hawk is an Awk clone. Program is a set of pattern {action} pairs. Hawk reads
 from all of the present files and for each line of each file executes all the
 provided pairs. If no files are present, hawk reads from stdin.
+`
+
+func usage() {
+	fmt.Fprintln(os.Stderr, shortHelp+`
+Run hawk -help for a detailed help message.
 
 Flags:`)
 	flag.PrintDefaults()

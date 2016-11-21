@@ -1,6 +1,7 @@
 BEGIN {
 	x = []
-	y[0] = 3
+	y[0] = 2
+	y[0]++
 	z[] = 4
 	print y[0], z[0], z
 	arr = ["January", "February", 1 + 2]
@@ -20,4 +21,14 @@ BEGIN {
 	m[1] = "i"; m["two"] = 2
 	n["nine"] = []; n[1] = "I"
 	print "keys aren't printed yet", m + n;
+
+	tt = [[3], [4, 2]]
+	tt[1][0]++
+	tt[0][0] -= 1
+	tt[1][1] *= 10
+	print tt
+
+	w[0] = []
+	w[0][] = "www"
+	print w
 }

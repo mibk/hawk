@@ -6,3 +6,5 @@ April
 ["Jan", "February", 3, "April"]
 [3, 4, 7, 2, 9, 6]
 keys aren't printed yet ["i", 2, []]
+[[2], [5, 20]]
+[["www"]]

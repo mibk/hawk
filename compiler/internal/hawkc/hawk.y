@@ -32,7 +32,7 @@ var (
 %type <decl>      decl paction funcdecl
 %type <symlist>   arglist
 %type <decllist>  decllist
-%type <expr>      expr oexpr uexpr
+%type <expr>      expr oexpr uexpr indexexpr addressable
 %type <exprlist>  exprlist
 %type <stmt>      pipeline stmt ostmt ifstmt else if_or_block forstmt foreachstmt
 %type <blockstmt> blockstmt
@@ -171,47 +171,49 @@ stmt:
 	{
 		$$ = &ExprStmt{$1}
 	}
-|	IDENT '=' expr
+|	addressable '=' expr
 	{
-		$$ = &AssignStmt{genDebugInfo(), nil, &Ident{Name: $1}, $3}
+		$$ = &AssignStmt{genDebugInfo(), nil, $1, $3}
 	}
+
+	// The following 2 rules could be made into one by replacing IDENT/indexexpr with addressable,
+	// but then there are 3 shift/reduce conflicts.
 |	IDENT '[' ']' '=' expr
 	{
 		$$ = &AssignStmt{genDebugInfo(), nil, &IndexExpr{genDebugInfo(), &Ident{Name: $1}, nil}, $5}
 	}
-|	IDENT '[' expr ']' '=' expr
+|	indexexpr '[' ']' '=' expr
 	{
-		$$ = &AssignStmt{genDebugInfo(), nil, &IndexExpr{genDebugInfo(), &Ident{Name: $1}, $3}, $6}
+		$$ = &AssignStmt{genDebugInfo(), nil, &IndexExpr{genDebugInfo(), $1, nil}, $5}
 	}
-|	IDENT ADDEQ expr
+
+|	addressable ADDEQ expr
 	{
-		$$ = &AssignStmt{genDebugInfo(), nil, &Ident{Name: $1}, &BinaryExpr{genDebugInfo(), Add, &Ident{Name: $1}, $3}}
+		$$ = &AssignStmt{genDebugInfo(), nil, $1, &BinaryExpr{genDebugInfo(), Add, $1, $3}}
 	}
-|	IDENT SUBEQ expr
+|	addressable SUBEQ expr
 	{
-		$$ = &AssignStmt{genDebugInfo(), nil, &Ident{Name: $1}, &BinaryExpr{genDebugInfo(), Sub, &Ident{Name: $1}, $3}}
+		$$ = &AssignStmt{genDebugInfo(), nil, $1, &BinaryExpr{genDebugInfo(), Sub, $1, $3}}
 	}
-|	IDENT MULEQ expr
+|	addressable MULEQ expr
 	{
-		$$ = &AssignStmt{genDebugInfo(), nil, &Ident{Name: $1}, &BinaryExpr{genDebugInfo(), Mul, &Ident{Name: $1}, $3}}
+		$$ = &AssignStmt{genDebugInfo(), nil, $1, &BinaryExpr{genDebugInfo(), Mul, $1, $3}}
 	}
-|	IDENT DIVEQ expr
+|	addressable DIVEQ expr
 	{
-		$$ = &AssignStmt{genDebugInfo(), nil, &Ident{Name: $1}, &BinaryExpr{genDebugInfo(), Div, &Ident{Name: $1}, $3}}
+		$$ = &AssignStmt{genDebugInfo(), nil, $1, &BinaryExpr{genDebugInfo(), Div, $1, $3}}
 	}
-|	IDENT MODEQ expr
+|	addressable MODEQ expr
 	{
-		$$ = &AssignStmt{genDebugInfo(), nil, &Ident{Name: $1}, &BinaryExpr{genDebugInfo(), Mod, &Ident{Name: $1}, $3}}
+		$$ = &AssignStmt{genDebugInfo(), nil, $1, &BinaryExpr{genDebugInfo(), Mod, $1, $3}}
 	}
-	// TODO: should rather be 'uexpr INC' and catch unwanted usage during
-	//	semantic analysis, but for now...
-|	IDENT INC
+|	addressable INC
 	{
-		$$ = &AssignStmt{genDebugInfo(), nil, &Ident{Name: $1}, &BinaryExpr{genDebugInfo(), Add, &Ident{Name: $1}, BasicLit{value.Number, "1"}}}
+		$$ = &AssignStmt{genDebugInfo(), nil, $1, &BinaryExpr{genDebugInfo(), Add, $1, BasicLit{value.Number, "1"}}}
 	}
-|	IDENT DEC
+|	addressable DEC
 	{
-		$$ = &AssignStmt{genDebugInfo(), nil, &Ident{Name: $1}, &BinaryExpr{genDebugInfo(), Sub, &Ident{Name: $1}, BasicLit{value.Number, "1"}}}
+		$$ = &AssignStmt{genDebugInfo(), nil, $1, &BinaryExpr{genDebugInfo(), Sub, $1, BasicLit{value.Number, "1"}}}
 	}
 |	ifstmt
 	{
@@ -244,6 +246,16 @@ stmt:
 |	PRINT
 	{
 		$$ = &PrintStmt{genDebugInfo(), nil, $1, nil}
+	}
+
+addressable:
+	IDENT
+	{
+		$$ = &Ident{ast, $1}
+	}
+|	indexexpr
+	{
+		$$ = $1
 	}
 
 ostmt:
@@ -438,11 +450,22 @@ uexpr:
 	{
 		$$ = &ArrayLit{$2}
 	}
-	// TODO: Allow more expr than just IDENT.
-|	IDENT '[' expr ']'
+|	indexexpr
+	{
+		$$ = $1
+	}
+
+
+indexexpr:
+	IDENT '[' expr ']'
 	{
 		$$ = &IndexExpr{genDebugInfo(), &Ident{Name: $1}, $3}
 	}
+|	indexexpr '[' expr ']'
+	{
+		$$ = &IndexExpr{genDebugInfo(), $1, $3}
+	}
+
 
 exprlist:
 	expr

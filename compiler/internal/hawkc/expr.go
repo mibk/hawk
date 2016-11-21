@@ -162,11 +162,11 @@ func (e *BinaryExpr) Eval(w io.Writer) value.Value {
 		v, v2 := e.X.Eval(w), e.Y.Eval(w)
 		l, ok := v.Scalar()
 		r, ok2 := v2.Scalar()
-		if !ok && !ok2 {
+		if !ok || !ok2 {
 			if e.Op == Add {
 				a, ok := v.Array()
 				a2, ok2 := v2.Array()
-				if !ok && !ok2 {
+				if !ok || !ok2 {
 					panic(fmt.Sprintf("unexpected value types %V and %V", v, v2))
 				}
 				return value.MergeArrays(a, a2)

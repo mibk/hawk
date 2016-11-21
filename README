@@ -44,7 +44,7 @@ Examples
         coffee	2.49
         lunch	3.20
 
-        { m[$1] = m[$1] + $2 }
+        { m[$1] += $2 }
         END {
             for k, v in m {
                 print v, k

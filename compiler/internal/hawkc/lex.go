@@ -7,8 +7,10 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"unicode"
+	"math/big"
 	"unicode/utf8"
+
+	"github.com/mibk/hawk/value"
 )
 
 type yyLex struct {
@@ -45,7 +47,7 @@ func (l *yyLex) Lex(yylval *yySymType) (tok int) {
 			return ';'
 		}
 		r := l.next()
-		if unicode.IsDigit(r) {
+		if isDigit(r) {
 			return l.lexNum(yylval)
 		} else if r >= utf8.RuneSelf || isLetter(r) {
 			return l.lexIdent(yylval)
@@ -152,14 +154,69 @@ func (l *yyLex) Lex(yylval *yySymType) (tok int) {
 	}
 }
 
+const (
+	_int10 = iota
+	_int16
+	_float
+)
+
 func (l *yyLex) lexNum(yylval *yySymType) int {
 	l.buf.Reset()
-	l.buf.WriteRune(l.last)
-	for unicode.IsDigit(l.next()) {
-		l.buf.WriteRune(l.last)
+
+	kind := _int10
+	r := l.last
+	if r == '0' {
+		r = l.next()
+		if r == 'x' || r == 'X' {
+			kind = _int16
+			r = l.next()
+			noDigits := true
+			for isDigit(r) || r >= 'a' && r <= 'f' || r >= 'A' && r <= 'F' {
+				l.buf.WriteRune(r)
+				r = l.next()
+				noDigits = false
+			}
+			if noDigits {
+				l.Error("malformed hex constant")
+				return eof
+			}
+			goto done
+		}
+		l.buf.WriteRune('0')
 	}
+	for isDigit(r) {
+		l.buf.WriteRune(r)
+		r = l.next()
+	}
+	if r == '.' {
+		kind = _float
+		l.buf.WriteRune(r)
+		r = l.next()
+		for isDigit(r) {
+			l.buf.WriteRune(r)
+			r = l.next()
+		}
+	}
+
+done:
 	l.backup()
-	yylval.sym = l.buf.String()
+	switch kind {
+	case _int10, _int16:
+		base := 10
+		if kind == _int16 {
+			base = 16
+		}
+		var z big.Int
+		z.SetString(l.buf.String(), base)
+		yylval.val = value.NewNumber(float64(z.Int64()))
+	case _float:
+		var z big.Float
+		z.SetString(l.buf.String())
+		f, _ := z.Float64()
+		yylval.val = value.NewNumber(f)
+	default:
+		panic("unreachable")
+	}
 	return NUM
 }
 

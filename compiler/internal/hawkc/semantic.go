@@ -132,5 +132,5 @@ func (a *Analyser) walkExpr(e Expr) {
 }
 
 func (a *Analyser) defaultPrintArgs() []Expr {
-	return []Expr{&FieldExpr{X: BasicLit{value.Number, "0"}}}
+	return []Expr{&FieldExpr{X: BasicLit{value.NewNumber(0)}}}
 }

@@ -19,6 +19,7 @@ var (
 
 %union {
 	sym       string
+	val       value.Value
 	symlist   []string
 	decl      Decl
 	decllist  []Decl
@@ -38,7 +39,8 @@ var (
 %type <blockstmt> blockstmt
 %type <stmtlist>  stmtlist
 
-%token <sym>  IDENT NUM BOOL STRING PRINT
+%token <sym>  IDENT BOOL STRING PRINT
+%token <val>  NUM
 %token        BEGIN END
 %token        IF ELSE
 %token        FOR IN BREAK CONTINUE
@@ -209,11 +211,11 @@ stmt:
 	}
 |	addressable INC
 	{
-		$$ = &AssignStmt{genDebugInfo(), nil, $1, &BinaryExpr{genDebugInfo(), Add, $1, BasicLit{value.Number, "1"}}}
+		$$ = &AssignStmt{genDebugInfo(), nil, $1, &BinaryExpr{genDebugInfo(), Add, $1, BasicLit{value.NewNumber(1)}}}
 	}
 |	addressable DEC
 	{
-		$$ = &AssignStmt{genDebugInfo(), nil, $1, &BinaryExpr{genDebugInfo(), Sub, $1, BasicLit{value.Number, "1"}}}
+		$$ = &AssignStmt{genDebugInfo(), nil, $1, &BinaryExpr{genDebugInfo(), Sub, $1, BasicLit{value.NewNumber(1)}}}
 	}
 |	ifstmt
 	{
@@ -404,15 +406,15 @@ oexpr:
 uexpr:
 	NUM
 	{
-		$$ = BasicLit{value.Number, $1}
+		$$ = BasicLit{$1}
 	}
 |	STRING
 	{
-		$$ = BasicLit{value.String, $1}
+		$$ = BasicLit{value.NewString($1)}
 	}
 |	BOOL
 	{
-		$$ = BasicLit{value.Bool, $1}
+		$$ = BasicLit{value.NewBool($1 == "true")}
 	}
 |	'+' uexpr
 	{

@@ -1,0 +1,5 @@
+BEGIN {
+	print 0xFF, 0Xba
+	print 2011.003
+	print 888777
+}

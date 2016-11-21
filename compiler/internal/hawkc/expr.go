@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"regexp"
-	"strconv"
 
 	"github.com/mibk/hawk/scan"
 	"github.com/mibk/hawk/value"
@@ -286,25 +285,10 @@ func (m *MatchExpr) Eval(w io.Writer) value.Value {
 }
 
 type BasicLit struct {
-	Type value.ScalarType
-	Val  string
+	Val value.Value
 }
 
-func (b BasicLit) Eval(io.Writer) value.Value {
-	switch b.Type {
-	case value.Bool:
-		return value.NewBool(b.Val == "true")
-	case value.Number:
-		n, err := strconv.Atoi(b.Val)
-		if err != nil {
-			panic(err)
-		}
-		return value.NewNumber(float64(n))
-	case value.String:
-		return value.NewString(b.Val)
-	}
-	panic("unknown type")
-}
+func (b BasicLit) Eval(io.Writer) value.Value { return b.Val }
 
 type ArrayLit struct {
 	Elems []Expr

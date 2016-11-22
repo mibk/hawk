@@ -48,11 +48,6 @@ func NewArray() *Array {
 // autoincrement value is used as a key.
 func (a *Array) Put(k *Scalar, v Value) {
 	if k == nil {
-		if a.associative {
-			// TODO: What should be the next autoincrement
-			// value if the array is associative.
-			panic("not implemented yet")
-		}
 		k = NewNumber(float64(a.ai))
 		a.keys = append(a.keys, k)
 		a.ai++
@@ -63,7 +58,9 @@ func (a *Array) Put(k *Scalar, v Value) {
 				if k.typ != Number || k.number != float64(a.ai) {
 					a.associative = true
 				}
-				a.ai++
+				if k.typ == Number {
+					a.ai = int(k.number) + 1
+				}
 			}
 		}
 	}

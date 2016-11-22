@@ -12,6 +12,10 @@ BEGIN {
 	print arr[len(arr)-1]
 	print arr
 	printf "%#v\n", arr
+	arr[7.5] = "seven"
+	arr[] = "eight"
+	print arr
+	print
 
 	// Join arrays.
 	a = [3, 4, 7]; b = [2, 9, 6];

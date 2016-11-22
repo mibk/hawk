@@ -4,6 +4,8 @@ Jan
 April
 ["Jan", "February", 3, "April"]
 ["Jan", "February", 3, "April"]
+[0: "Jan", 1: "February", 2: 3, 3: "April", 7.5: "seven", 8: "eight"]
+
 [3, 4, 7, 2, 9, 6]
 [1: "i", "two": 2, "nine": []]
 [[2], [5, 20]]

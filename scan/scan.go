@@ -189,6 +189,9 @@ func (sc *Scanner) FieldCount() int {
 
 // Filename returns the name of the currently processed source.
 func (sc *Scanner) Filename() string {
+	if sc.lr == nil {
+		return ""
+	}
 	return sc.lr.Name()
 }
 

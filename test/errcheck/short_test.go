@@ -106,3 +106,23 @@ func TestRuntimeErrors(t *testing.T) {
 		}
 	}
 }
+
+var runtimeValid = []struct {
+	prog string
+}{
+	0: {`FILENAME`},
+}
+
+func TestRuntimeValid(t *testing.T) {
+	for i, tt := range runtimeValid {
+		b := strings.NewReader("BEGIN { " + tt.prog + " }")
+		prog, err := compiler.Compile("runtime", b)
+		if err != nil {
+			t.Errorf("test %d: unexpected err: %v", i, err)
+			continue
+		}
+		if err := prog.Run(ioutil.Discard, nil); err != nil {
+			t.Errorf("%d: unexpected error: %v", i, err)
+		}
+	}
+}

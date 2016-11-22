@@ -379,7 +379,7 @@ func (l *yyLex) backup() {
 
 func (l *yyLex) Error(s string) {
 	if l.err == nil {
-		l.err = fmt.Errorf("%d: %s", lexlineno, s)
+		l.err = fmt.Errorf("%s:%d: %s", progName, lexlineno, s)
 	}
 }
 

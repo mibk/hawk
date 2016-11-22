@@ -199,13 +199,14 @@ type runtimeError struct {
 }
 
 type debugInfo struct {
-	line int
+	srcName string
+	line    int
 }
 
 func genDebugInfo() debugInfo {
-	return debugInfo{lexlineno}
+	return debugInfo{progName, lexlineno}
 }
 
 func (di debugInfo) throw(format string, args ...interface{}) {
-	throw(fmt.Sprintf("line:%d: ", di.line)+format, args...)
+	throw(fmt.Sprintf("%s:%d: ", di.srcName, di.line)+format, args...)
 }

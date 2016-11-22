@@ -14,12 +14,13 @@ import (
 )
 
 var (
-	ast *Program
+	progName string
+	ast      *Program
 
 	defaultAction = &BlockStmt{[]Stmt{&PrintStmt{Fun: "print"}}}
 )
 
-//line hawk.y:20
+//line hawk.y:21
 type yySymType struct {
 	yys       int
 	sym       string
@@ -127,11 +128,12 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyInitialStackSize = 16
 
-//line hawk.y:489
+//line hawk.y:490
 
-// Compile compiles a Hawk program from src. It is not safe
+// Compile compiles a Hawk program (name) from src. It is not safe
 // for concurrent use.
-func Compile(src io.Reader) (*Program, error) {
+func Compile(name string, src io.Reader) (*Program, error) {
+	progName = name
 	sc := new(scan.Scanner)
 	ast = NewProgram(sc)
 	lexlineno = 1
@@ -719,7 +721,7 @@ yydefault:
 
 	case 1:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line hawk.y:64
+		//line hawk.y:65
 		{
 			for _, d := range yyDollar[1].decllist {
 				switch d := d.(type) {
@@ -738,535 +740,535 @@ yydefault:
 		}
 	case 2:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:83
+		//line hawk.y:84
 		{
 			yyVAL.decllist = []Decl{yyDollar[1].decl}
 		}
 	case 3:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:87
+		//line hawk.y:88
 		{
 			yyVAL.decllist = append(yyDollar[1].decllist, yyDollar[3].decl)
 		}
 	case 4:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:93
+		//line hawk.y:94
 		{
 			yyVAL.decl = yyDollar[1].decl
 		}
 	case 5:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:97
+		//line hawk.y:98
 		{
 			yyVAL.decl = yyDollar[1].decl
 		}
 	case 6:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line hawk.y:103
+		//line hawk.y:104
 		{
 			yyVAL.decl = &PatternAction{yyDollar[1].expr, yyDollar[2].blockstmt}
 		}
 	case 7:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:107
+		//line hawk.y:108
 		{
 			yyVAL.decl = &PatternAction{yyDollar[1].expr, defaultAction}
 		}
 	case 8:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line hawk.y:111
+		//line hawk.y:112
 		{
 			yyVAL.decl = &BeginAction{yyDollar[2].blockstmt}
 		}
 	case 9:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line hawk.y:115
+		//line hawk.y:116
 		{
 			yyVAL.decl = &EndAction{yyDollar[2].blockstmt}
 		}
 	case 10:
 		yyDollar = yyS[yypt-6 : yypt+1]
-		//line hawk.y:121
+		//line hawk.y:122
 		{
 			yyVAL.decl = &FuncDecl{&FuncScope{}, yyDollar[2].sym, yyDollar[4].symlist, yyDollar[6].blockstmt}
 		}
 	case 11:
 		yyDollar = yyS[yypt-0 : yypt+1]
-		//line hawk.y:126
+		//line hawk.y:127
 		{
 			yyVAL.symlist = nil
 		}
 	case 12:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:130
+		//line hawk.y:131
 		{
 			yyVAL.symlist = []string{yyDollar[1].sym}
 		}
 	case 13:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:134
+		//line hawk.y:135
 		{
 			yyVAL.symlist = append(yyDollar[1].symlist, yyDollar[3].sym)
 		}
 	case 14:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line hawk.y:140
+		//line hawk.y:141
 		{
 			yyVAL.blockstmt = &BlockStmt{yyDollar[2].stmtlist}
 		}
 	case 15:
 		yyDollar = yyS[yypt-0 : yypt+1]
-		//line hawk.y:145
+		//line hawk.y:146
 		{
 			yyVAL.stmtlist = nil
 		}
 	case 16:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:149
+		//line hawk.y:150
 		{
 			yyVAL.stmtlist = []Stmt{yyDollar[1].stmt}
 		}
 	case 17:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:153
+		//line hawk.y:154
 		{
 			yyVAL.stmtlist = append(yyDollar[1].stmtlist, yyDollar[3].stmt)
 		}
 	case 18:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:159
+		//line hawk.y:160
 		{
 			yyVAL.stmt = yyDollar[1].stmt
 		}
 	case 19:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:163
+		//line hawk.y:164
 		{
 			yyVAL.stmt = yyDollar[1].blockstmt
 		}
 	case 20:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:167
+		//line hawk.y:168
 		{
 			yyVAL.stmt = &PipeStmt{genDebugInfo(), yyDollar[1].stmt, yyDollar[3].sym}
 		}
 	case 21:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:173
+		//line hawk.y:174
 		{
 			yyVAL.stmt = &ExprStmt{yyDollar[1].expr}
 		}
 	case 22:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:177
+		//line hawk.y:178
 		{
 			yyVAL.stmt = &AssignStmt{genDebugInfo(), nil, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 23:
 		yyDollar = yyS[yypt-5 : yypt+1]
-		//line hawk.y:184
+		//line hawk.y:185
 		{
 			yyVAL.stmt = &AssignStmt{genDebugInfo(), nil, &IndexExpr{genDebugInfo(), &Ident{Name: yyDollar[1].sym}, nil}, yyDollar[5].expr}
 		}
 	case 24:
 		yyDollar = yyS[yypt-5 : yypt+1]
-		//line hawk.y:188
+		//line hawk.y:189
 		{
 			yyVAL.stmt = &AssignStmt{genDebugInfo(), nil, &IndexExpr{genDebugInfo(), yyDollar[1].expr, nil}, yyDollar[5].expr}
 		}
 	case 25:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:193
+		//line hawk.y:194
 		{
 			yyVAL.stmt = &AssignStmt{genDebugInfo(), nil, yyDollar[1].expr, &BinaryExpr{genDebugInfo(), Add, yyDollar[1].expr, yyDollar[3].expr}}
 		}
 	case 26:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:197
+		//line hawk.y:198
 		{
 			yyVAL.stmt = &AssignStmt{genDebugInfo(), nil, yyDollar[1].expr, &BinaryExpr{genDebugInfo(), Sub, yyDollar[1].expr, yyDollar[3].expr}}
 		}
 	case 27:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:201
+		//line hawk.y:202
 		{
 			yyVAL.stmt = &AssignStmt{genDebugInfo(), nil, yyDollar[1].expr, &BinaryExpr{genDebugInfo(), Mul, yyDollar[1].expr, yyDollar[3].expr}}
 		}
 	case 28:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:205
+		//line hawk.y:206
 		{
 			yyVAL.stmt = &AssignStmt{genDebugInfo(), nil, yyDollar[1].expr, &BinaryExpr{genDebugInfo(), Div, yyDollar[1].expr, yyDollar[3].expr}}
 		}
 	case 29:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:209
+		//line hawk.y:210
 		{
 			yyVAL.stmt = &AssignStmt{genDebugInfo(), nil, yyDollar[1].expr, &BinaryExpr{genDebugInfo(), Mod, yyDollar[1].expr, yyDollar[3].expr}}
 		}
 	case 30:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line hawk.y:213
+		//line hawk.y:214
 		{
 			yyVAL.stmt = &AssignStmt{genDebugInfo(), nil, yyDollar[1].expr, &BinaryExpr{genDebugInfo(), Add, yyDollar[1].expr, BasicLit{value.NewNumber(1)}}}
 		}
 	case 31:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line hawk.y:217
+		//line hawk.y:218
 		{
 			yyVAL.stmt = &AssignStmt{genDebugInfo(), nil, yyDollar[1].expr, &BinaryExpr{genDebugInfo(), Sub, yyDollar[1].expr, BasicLit{value.NewNumber(1)}}}
 		}
 	case 32:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:221
+		//line hawk.y:222
 		{
 			yyVAL.stmt = yyDollar[1].stmt
 		}
 	case 33:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:225
+		//line hawk.y:226
 		{
 			yyVAL.stmt = yyDollar[1].stmt
 		}
 	case 34:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:229
+		//line hawk.y:230
 		{
 			yyVAL.stmt = yyDollar[1].stmt
 		}
 	case 35:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:233
+		//line hawk.y:234
 		{
 			yyVAL.stmt = &StatusStmt{StatusBreak}
 		}
 	case 36:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:237
+		//line hawk.y:238
 		{
 			yyVAL.stmt = &StatusStmt{StatusContinue}
 		}
 	case 37:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line hawk.y:241
+		//line hawk.y:242
 		{
 			yyVAL.stmt = &ReturnStmt{X: yyDollar[2].expr}
 		}
 	case 38:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line hawk.y:245
+		//line hawk.y:246
 		{
 			yyVAL.stmt = &PrintStmt{genDebugInfo(), nil, yyDollar[1].sym, yyDollar[2].exprlist}
 		}
 	case 39:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:249
+		//line hawk.y:250
 		{
 			yyVAL.stmt = &PrintStmt{genDebugInfo(), nil, yyDollar[1].sym, nil}
 		}
 	case 40:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:255
+		//line hawk.y:256
 		{
 			yyVAL.expr = &Ident{ast, yyDollar[1].sym}
 		}
 	case 41:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:259
+		//line hawk.y:260
 		{
 			yyVAL.expr = yyDollar[1].expr
 		}
 	case 42:
 		yyDollar = yyS[yypt-0 : yypt+1]
-		//line hawk.y:264
+		//line hawk.y:265
 		{
 			yyVAL.stmt = nil
 		}
 	case 43:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:268
+		//line hawk.y:269
 		{
 			yyVAL.stmt = yyDollar[1].stmt
 		}
 	case 44:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line hawk.y:274
+		//line hawk.y:275
 		{
 			yyVAL.stmt = &IfStmt{genDebugInfo(), yyDollar[2].expr, yyDollar[3].blockstmt, yyDollar[4].stmt}
 		}
 	case 45:
 		yyDollar = yyS[yypt-0 : yypt+1]
-		//line hawk.y:279
+		//line hawk.y:280
 		{
 			yyVAL.stmt = nil
 		}
 	case 46:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line hawk.y:283
+		//line hawk.y:284
 		{
 			yyVAL.stmt = yyDollar[2].stmt
 		}
 	case 47:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:289
+		//line hawk.y:290
 		{
 			yyVAL.stmt = yyDollar[1].stmt
 		}
 	case 48:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:293
+		//line hawk.y:294
 		{
 			yyVAL.stmt = yyDollar[1].blockstmt
 		}
 	case 49:
 		yyDollar = yyS[yypt-7 : yypt+1]
-		//line hawk.y:299
+		//line hawk.y:300
 		{
 			yyVAL.stmt = &ForStmt{genDebugInfo(), yyDollar[2].stmt, yyDollar[4].expr, yyDollar[6].stmt, yyDollar[7].blockstmt}
 		}
 	case 50:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:303
+		//line hawk.y:304
 		{
 			yyVAL.stmt = &ForStmt{genDebugInfo(), nil, yyDollar[2].expr, nil, yyDollar[3].blockstmt}
 		}
 	case 51:
 		yyDollar = yyS[yypt-5 : yypt+1]
-		//line hawk.y:309
+		//line hawk.y:310
 		{
 			yyVAL.stmt = &ForeachStmt{genDebugInfo(), &Ident{Name: yyDollar[2].sym}, nil, yyDollar[4].expr, yyDollar[5].blockstmt}
 		}
 	case 52:
 		yyDollar = yyS[yypt-7 : yypt+1]
-		//line hawk.y:313
+		//line hawk.y:314
 		{
 			yyVAL.stmt = &ForeachStmt{genDebugInfo(), &Ident{Name: yyDollar[2].sym}, &Ident{Name: yyDollar[4].sym}, yyDollar[6].expr, yyDollar[7].blockstmt}
 		}
 	case 53:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:320
+		//line hawk.y:321
 		{
 			yyVAL.expr = yyDollar[1].expr
 		}
 	case 54:
 		yyDollar = yyS[yypt-5 : yypt+1]
-		//line hawk.y:324
+		//line hawk.y:325
 		{
 			yyVAL.expr = &TernaryExpr{genDebugInfo(), yyDollar[1].expr, yyDollar[3].expr, yyDollar[5].expr}
 		}
 	case 55:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line hawk.y:328
+		//line hawk.y:329
 		{
 			yyVAL.expr = &FieldExpr{genDebugInfo(), nil, yyDollar[2].expr}
 		}
 	case 56:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:332
+		//line hawk.y:333
 		{
 			yyVAL.expr = &BinaryExpr{genDebugInfo(), OrOr, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 57:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:336
+		//line hawk.y:337
 		{
 			yyVAL.expr = &BinaryExpr{genDebugInfo(), AndAnd, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 58:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:340
+		//line hawk.y:341
 		{
 			yyVAL.expr = &BinaryExpr{genDebugInfo(), Eq, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 59:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:344
+		//line hawk.y:345
 		{
 			yyVAL.expr = &BinaryExpr{genDebugInfo(), NotEq, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 60:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:348
+		//line hawk.y:349
 		{
 			yyVAL.expr = &BinaryExpr{genDebugInfo(), LtEq, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 61:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:352
+		//line hawk.y:353
 		{
 			yyVAL.expr = &BinaryExpr{genDebugInfo(), GtEq, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 62:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:356
+		//line hawk.y:357
 		{
 			yyVAL.expr = &BinaryExpr{genDebugInfo(), Lt, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 63:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:360
+		//line hawk.y:361
 		{
 			yyVAL.expr = &BinaryExpr{genDebugInfo(), Gt, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 64:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:364
+		//line hawk.y:365
 		{
 			yyVAL.expr = &BinaryExpr{genDebugInfo(), Add, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 65:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:368
+		//line hawk.y:369
 		{
 			yyVAL.expr = &BinaryExpr{genDebugInfo(), Sub, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 66:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:372
+		//line hawk.y:373
 		{
 			yyVAL.expr = &BinaryExpr{genDebugInfo(), Mul, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 67:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:376
+		//line hawk.y:377
 		{
 			yyVAL.expr = &BinaryExpr{genDebugInfo(), Div, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 68:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:380
+		//line hawk.y:381
 		{
 			yyVAL.expr = &BinaryExpr{genDebugInfo(), Mod, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 69:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:384
+		//line hawk.y:385
 		{
 			yyVAL.expr = &BinaryExpr{genDebugInfo(), Concat, yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 70:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:388
+		//line hawk.y:389
 		{
 			yyVAL.expr = &MatchExpr{genDebugInfo(), yyDollar[1].expr, yyDollar[3].expr, true}
 		}
 	case 71:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:392
+		//line hawk.y:393
 		{
 			yyVAL.expr = &MatchExpr{genDebugInfo(), yyDollar[1].expr, yyDollar[3].expr, false}
 		}
 	case 72:
 		yyDollar = yyS[yypt-0 : yypt+1]
-		//line hawk.y:397
+		//line hawk.y:398
 		{
 			yyVAL.expr = nil
 		}
 	case 73:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:401
+		//line hawk.y:402
 		{
 			yyVAL.expr = yyDollar[1].expr
 		}
 	case 74:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:408
+		//line hawk.y:409
 		{
 			yyVAL.expr = BasicLit{yyDollar[1].val}
 		}
 	case 75:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:412
+		//line hawk.y:413
 		{
 			yyVAL.expr = BasicLit{value.NewString(yyDollar[1].sym)}
 		}
 	case 76:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:416
+		//line hawk.y:417
 		{
 			yyVAL.expr = BasicLit{value.NewBool(yyDollar[1].sym == "true")}
 		}
 	case 77:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line hawk.y:420
+		//line hawk.y:421
 		{
 			yyVAL.expr = yyDollar[2].expr
 		}
 	case 78:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line hawk.y:424
+		//line hawk.y:425
 		{
 			yyVAL.expr = &UnaryExpr{genDebugInfo(), Minus, yyDollar[2].expr}
 		}
 	case 79:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line hawk.y:428
+		//line hawk.y:429
 		{
 			yyVAL.expr = &UnaryExpr{genDebugInfo(), Not, yyDollar[2].expr}
 		}
 	case 80:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:432
+		//line hawk.y:433
 		{
 			yyVAL.expr = yyDollar[2].expr
 		}
 	case 81:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:436
+		//line hawk.y:437
 		{
 			yyVAL.expr = &Ident{Name: yyDollar[1].sym}
 		}
 	case 82:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:440
+		//line hawk.y:441
 		{
 			yyVAL.expr = &CallExpr{genDebugInfo(), yyDollar[1].sym, nil}
 		}
 	case 83:
 		yyDollar = yyS[yypt-5 : yypt+1]
-		//line hawk.y:444
+		//line hawk.y:445
 		{
 			yyVAL.expr = &CallExpr{genDebugInfo(), yyDollar[1].sym, yyDollar[3].exprlist}
 		}
 	case 84:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line hawk.y:448
+		//line hawk.y:449
 		{
 			yyVAL.expr = &ArrayLit{}
 		}
 	case 85:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line hawk.y:452
+		//line hawk.y:453
 		{
 			yyVAL.expr = &ArrayLit{yyDollar[2].exprlist}
 		}
 	case 86:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:456
+		//line hawk.y:457
 		{
 			yyVAL.expr = yyDollar[1].expr
 		}
 	case 87:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line hawk.y:463
+		//line hawk.y:464
 		{
 			yyVAL.expr = &IndexExpr{genDebugInfo(), &Ident{Name: yyDollar[1].sym}, yyDollar[3].expr}
 		}
 	case 88:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line hawk.y:467
+		//line hawk.y:468
 		{
 			yyVAL.expr = &IndexExpr{genDebugInfo(), yyDollar[1].expr, yyDollar[3].expr}
 		}
 	case 89:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line hawk.y:474
+		//line hawk.y:475
 		{
 			yyVAL.exprlist = []Expr{yyDollar[1].expr}
 		}
 	case 90:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line hawk.y:478
+		//line hawk.y:479
 		{
 			yyVAL.exprlist = append(yyDollar[1].exprlist, yyDollar[3].expr)
 		}

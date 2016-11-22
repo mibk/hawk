@@ -64,9 +64,9 @@ func main() {
 		input = scan.MultiSource(srcs...)
 	}
 
-	prog, err := compiler.Compile(srcCode)
+	prog, err := compiler.Compile(name, srcCode)
 	if err != nil {
-		log.Fatalf("%s:%v", name, err)
+		log.Fatal(err)
 	}
 	if *fieldSep != "" {
 		prog.SetFieldSep(*fieldSep)

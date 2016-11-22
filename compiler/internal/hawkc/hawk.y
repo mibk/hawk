@@ -11,6 +11,7 @@ import (
 )
 
 var (
+	progName string
 	ast    *Program
 
 	defaultAction = &BlockStmt{[]Stmt{&PrintStmt{Fun: "print"}}}
@@ -488,9 +489,10 @@ ocomma:
 
 %%
 
-// Compile compiles a Hawk program from src. It is not safe
+// Compile compiles a Hawk program (name) from src. It is not safe
 // for concurrent use.
-func Compile(src io.Reader) (*Program, error) {
+func Compile(name string, src io.Reader) (*Program, error) {
+	progName = name
 	sc := new(scan.Scanner)
 	ast = NewProgram(sc)
 	lexlineno = 1

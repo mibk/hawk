@@ -15,11 +15,12 @@ type Program struct {
 	prog hawkc.Program
 }
 
-// Compile compiles a Hawk program from src.
-func Compile(src io.Reader) (*Program, error) {
+// Compile compiles a Hawk program (name) from src. name is there
+// only for better error printing.
+func Compile(name string, src io.Reader) (*Program, error) {
 	mu.Lock()
 	defer mu.Unlock()
-	p, err := hawkc.Compile(src)
+	p, err := hawkc.Compile(name, src)
 	if err != nil {
 		return nil, err
 	}

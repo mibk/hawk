@@ -130,7 +130,7 @@ func (v *Scalar) String() string {
 	case String:
 		return v.string
 	case Number:
-		return fmt.Sprintf("%.6g", v.number)
+		return fmt.Sprintf("%.8g", v.number)
 	case Bool:
 		if v.number == 1 {
 			return "true"

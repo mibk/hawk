@@ -20,7 +20,7 @@ func TestRun(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				prog, err := compiler.Compile(f)
+				prog, err := compiler.Compile(f.Name(), f)
 				if err != nil {
 					t.Errorf("%s.hawk:%v", progname, err)
 					return

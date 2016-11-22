@@ -24,7 +24,7 @@ var valid = []struct {
 func TestValid(t *testing.T) {
 	for i, tt := range valid {
 		b := strings.NewReader(tt.prog)
-		if _, err := compiler.Compile(b); err != nil {
+		if _, err := compiler.Compile("valid", b); err != nil {
 			t.Errorf("test %d: unexpected err: %v", i+1, err)
 		}
 	}
@@ -51,11 +51,12 @@ var testProgs = []struct {
 func TestErrors(t *testing.T) {
 	for i, tt := range testProgs {
 		b := strings.NewReader(tt.prog)
-		_, err := compiler.Compile(b)
+		_, err := compiler.Compile("invalid", b)
 		if err == nil {
 			t.Errorf("%d: test unexpectedly succeded", i+1)
 			continue
 		}
+		tt.err = "invalid:" + tt.err
 		if err.Error() != tt.err {
 			t.Errorf("test %d:\n got: %v\nwant: %v", i+1, err, tt.err)
 		}
@@ -87,7 +88,7 @@ var runtimeInvalid = []struct {
 func TestRuntimeErrors(t *testing.T) {
 	for i, tt := range runtimeInvalid {
 		b := strings.NewReader("BEGIN { " + tt.prog + " }")
-		prog, err := compiler.Compile(b)
+		prog, err := compiler.Compile("runtime", b)
 		if err != nil {
 			t.Errorf("test %d: unexpected err: %v", i, err)
 			continue
@@ -97,7 +98,7 @@ func TestRuntimeErrors(t *testing.T) {
 			t.Errorf("%d: test unexpectedly succeded", i)
 			continue
 		}
-		tt.err = "line 1:" + tt.err
+		tt.err = "runtime:1: " + tt.err
 		if err.Error() != tt.err {
 			t.Errorf("test %d:\n got: %v\nwant: %v", i, err, tt.err)
 		}

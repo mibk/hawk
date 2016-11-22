@@ -207,5 +207,5 @@ func genDebugInfo() debugInfo {
 }
 
 func (di debugInfo) throw(format string, args ...interface{}) {
-	throw(fmt.Sprintf("line %d:", di.line)+format, args...)
+	throw(fmt.Sprintf("line:%d: ", di.line)+format, args...)
 }

@@ -165,12 +165,11 @@ func (e *BinaryExpr) Eval(w io.Writer) value.Value {
 			if e.Op == Add {
 				a, ok := v.Array()
 				a2, ok2 := v2.Array()
-				if !ok || !ok2 {
-					panic(fmt.Sprintf("unexpected value types %V and %V", v, v2))
+				if ok && ok2 {
+					return value.MergeArrays(a, a2)
 				}
-				return value.MergeArrays(a, a2)
 			}
-			e.throw("unsupported type for binary expression")
+			e.throw("unsupported types for binary expression: %V and %V", v, v2)
 		}
 		switch e.Op {
 		case Add:

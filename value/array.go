@@ -5,12 +5,13 @@ import (
 	"fmt"
 )
 
-// MergeArrays merges two array and returns a new array that
-// will be a union of them. If at least one of the array is
-// associative, the union will contain all the keys from the
+// MergeArrays merges two arrays and returns a new array that will
+// be a union of the previous two. If at least one of the arrays
+// is associative, the union will contain all the keys from the
 // first array and all the non-conflicting keys from the second
-// one. Otherwise, all the values from both arrays are one by one
-// put under keys from 0 to len(a)+len(a2)-1.
+// one. Otherwise, all the values from both arrays are one after
+// one put under keys from 0 to len(a)+len(a2)-1 and the resulting
+// array is non-associative.
 func MergeArrays(a, a2 *Array) *Array {
 	z := NewArray()
 	for _, k := range a.keys {

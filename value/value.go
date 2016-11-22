@@ -3,6 +3,7 @@ package value
 import (
 	"bytes"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -232,14 +233,18 @@ func (z *Scalar) Mul(x, y *Scalar) *Scalar {
 func (z *Scalar) Div(x, y *Scalar) *Scalar {
 	a, b := toFloat64(x, y)
 	z.typ = Number
-	z.number = a / b // TODO: division by 0.
+	z.number = a / b
 	return z
 }
 
 func (z *Scalar) Mod(x, y *Scalar) *Scalar {
 	a, b := toFloat64(x, y)
 	z.typ = Number
-	z.number = float64(int(a) % int(b))
+	if int(b) == 0 {
+		z.number = math.NaN()
+	} else {
+		z.number = float64(int(a) % int(b))
+	}
 	return z
 }
 

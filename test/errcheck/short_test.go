@@ -111,6 +111,7 @@ var runtimeValid = []struct {
 	prog string
 }{
 	0: {`FILENAME`},
+	1: {`23 % 0`},
 }
 
 func TestRuntimeValid(t *testing.T) {

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"regexp"
 	"strings"
 )
@@ -160,11 +159,16 @@ func (sc *Scanner) Err() error {
 	return sc.err
 }
 
-// Field returns ith field from the current row.
+// Field returns ith field from the current row. If i > NF, Field
+// returns an empty string. If i == 0, Field returns the whole record.
+// Field panics if i < 0.
 func (sc *Scanner) Field(i int) string {
+	if sc.err != nil {
+		return ""
+	}
 	switch {
 	case i < 0:
-		log.Fatal("attempt to access field -1")
+		panic("negative field index")
 	case i == 0:
 		return sc.rec
 	case i <= len(sc.fields):

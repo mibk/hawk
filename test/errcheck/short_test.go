@@ -83,6 +83,8 @@ var runtimeInvalid = []struct {
 	12: {`"array" ~ []`, "invalid types for regexp matching: string ~ array"},
 	13: {`"14" ~ 14`, "invalid types for regexp matching: string ~ number"},
 	14: {`[] ~ "regexp"`, "invalid types for regexp matching: array ~ string"},
+
+	15: {`print $-1`, "attempting to access a field using a negative index"},
 }
 
 func TestRuntimeErrors(t *testing.T) {

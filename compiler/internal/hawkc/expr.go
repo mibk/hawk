@@ -95,7 +95,11 @@ func (f *FieldExpr) Eval(w io.Writer) value.Value {
 	if !ok {
 		f.throw("attempting to access a field using a non-scalar value")
 	}
-	return value.NewString(f.sc.Field(v.Int()))
+	i := v.Int()
+	if i < 0 {
+		f.throw("attempting to access a field using a negative index")
+	}
+	return value.NewString(f.sc.Field(i))
 }
 
 type IndexExpr struct {

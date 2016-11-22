@@ -130,7 +130,7 @@ func (v *Scalar) String() string {
 	case String:
 		return v.string
 	case Number:
-		return strconv.FormatFloat(v.number, 'f', -1, 64)
+		return fmt.Sprintf("%.6g", v.number)
 	case Bool:
 		if v.number == 1 {
 			return "true"

@@ -20,7 +20,7 @@ BEGIN {
 	// Join maps.
 	m[1] = "i"; m["two"] = 2
 	n["nine"] = []; n[1] = "I"
-	print "keys aren't printed yet", m + n;
+	print m + n;
 
 	tt = [[3], [4, 2]]
 	tt[1][0]++

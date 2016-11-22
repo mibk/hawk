@@ -113,10 +113,12 @@ func (a *Array) Cmp(v Value) (cmp int, ok bool) {
 func (a *Array) String() string {
 	var buf bytes.Buffer
 	buf.WriteRune('[')
-	// TODO: Print using a different method if the array is associative.
 	for i, k := range a.keys {
 		if i != 0 {
 			buf.WriteString(", ")
+		}
+		if a.associative {
+			buf.WriteString(k.Encode() + ": ")
 		}
 		buf.WriteString(a.m[*k].Encode())
 	}

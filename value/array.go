@@ -15,18 +15,18 @@ import (
 func MergeArrays(a, a2 *Array) *Array {
 	z := NewArray()
 	for _, k := range a.keys {
-		z.Put(k, a.m[*k])
+		z.Put(&k, a.m[k])
 	}
 	if !a.associative && !a2.associative {
 		for _, k := range a2.keys {
-			z.Put(nil, a2.m[*k])
+			z.Put(nil, a2.m[k])
 		}
 	} else {
 		for _, k := range a2.keys {
-			if _, ok := z.m[*k]; ok {
+			if _, ok := z.m[k]; ok {
 				continue
 			}
-			z.Put(k, a2.m[*k])
+			z.Put(&k, a2.m[k])
 		}
 	}
 	return z
@@ -36,7 +36,7 @@ type Array struct {
 	ai          int // autoincrement
 	associative bool
 
-	keys []*Scalar
+	keys []Scalar
 	m    map[Scalar]Value
 }
 
@@ -49,11 +49,11 @@ func NewArray() *Array {
 func (a *Array) Put(k *Scalar, v Value) {
 	if k == nil {
 		k = NewNumber(float64(a.ai))
-		a.keys = append(a.keys, k)
+		a.keys = append(a.keys, *k)
 		a.ai++
 	} else {
 		if _, ok := a.m[*k]; !ok {
-			a.keys = append(a.keys, k)
+			a.keys = append(a.keys, *k)
 			if !a.associative {
 				if k.typ != Number || k.number != float64(a.ai) {
 					a.associative = true
@@ -71,7 +71,7 @@ func (a *Array) Get(k *Scalar) Value {
 	return a.m[*k]
 }
 
-func (a *Array) Keys() []*Scalar {
+func (a *Array) Keys() []Scalar {
 	return a.keys
 }
 
@@ -98,10 +98,10 @@ func (a *Array) Cmp(v Value) (cmp int, ok bool) {
 	}
 	for i, k := range a.keys {
 		k2 := a2.keys[i]
-		if cmp, _ := k.Cmp(k2); cmp != 0 {
+		if cmp, _ := k.Cmp(&k2); cmp != 0 {
 			return -1, false
 		}
-		if cmp, _ := a.m[*k].Cmp(a2.m[*k2]); cmp != 0 {
+		if cmp, _ := a.m[k].Cmp(a2.m[k2]); cmp != 0 {
 			return -1, false
 		}
 	}
@@ -118,7 +118,7 @@ func (a *Array) String() string {
 		if a.associative {
 			buf.WriteString(k.Encode() + ": ")
 		}
-		buf.WriteString(a.m[*k].Encode())
+		buf.WriteString(a.m[k].Encode())
 	}
 	buf.WriteRune(']')
 	return buf.String()

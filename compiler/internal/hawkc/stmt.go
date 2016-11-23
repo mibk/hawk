@@ -180,10 +180,10 @@ func (fs ForeachStmt) Exec(w io.Writer) Status {
 	}
 	for _, k := range a.Keys() {
 		if fs.Key != nil {
-			fs.Key.scope.Put(fs.Key.Name, k)
+			fs.Key.scope.Put(fs.Key.Name, &k)
 		}
 		if fs.Val != nil {
-			fs.Val.scope.Put(fs.Val.Name, a.Get(k))
+			fs.Val.scope.Put(fs.Val.Name, a.Get(&k))
 		}
 		switch fs.Body.Exec(w) {
 		case StatusBreak:

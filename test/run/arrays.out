@@ -10,3 +10,4 @@ April
 [1: "i", "two": 2, "nine": []]
 [[2], [5, 20]]
 [["www"]]
+[0: "zero", 6: "six", 7: "seven", 3.5: "three", 8: "eight"]

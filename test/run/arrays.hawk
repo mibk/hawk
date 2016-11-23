@@ -35,4 +35,11 @@ BEGIN {
 	w[0] = []
 	w[0][] = "www"
 	print w
+
+	map[] = "zero"
+	map[6] = "six"
+	map[7] = "seven"
+	map[3.5] = "three"
+	map[] = "eight"
+	print map
 }

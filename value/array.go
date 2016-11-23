@@ -58,9 +58,9 @@ func (a *Array) Put(k *Scalar, v Value) {
 				if k.typ != Number || k.number != float64(a.ai) {
 					a.associative = true
 				}
-				if k.typ == Number {
-					a.ai = int(k.number) + 1
-				}
+			}
+			if k.typ == Number && int(k.number) >= a.ai {
+				a.ai = int(k.number) + 1
 			}
 		}
 	}

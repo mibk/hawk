@@ -202,11 +202,7 @@ func formatVerb(s fmt.State, verb rune) string {
 }
 
 func (v *Scalar) Len() int {
-	if v.typ == String {
-		return len(v.string)
-	}
-	// Handle other cases properly.
-	return 0
+	return len(v.String())
 }
 
 func (z *Scalar) Add(x, y *Scalar) *Scalar {

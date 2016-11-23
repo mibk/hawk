@@ -12,6 +12,7 @@ var crashers = []struct {
 	prog string
 }{
 	0: {`{m[$0]=0; for k,v in m{print v<k}}`},
+	1: {`{RS=''}`},
 }
 
 func TestCrashers(t *testing.T) {

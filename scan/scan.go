@@ -83,7 +83,7 @@ func (sc *Scanner) SetSource(src Source) {
 // SetRowSep sets regexp rx that will be used to separate
 // input into rows.
 func (sc *Scanner) SetRowSep(rx string) {
-	if sc.err != nil {
+	if sc.err != nil || rx == "" {
 		return
 	}
 	rs, err := regexp.Compile(rx)

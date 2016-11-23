@@ -196,11 +196,11 @@ func (fs ForeachStmt) Exec(w io.Writer) Status {
 }
 
 type StatusStmt struct {
-	status Status
+	Status Status
 }
 
 func (s *StatusStmt) Exec(io.Writer) Status {
-	return s.status
+	return s.Status
 }
 
 type ReturnStmt struct {

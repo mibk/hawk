@@ -16,5 +16,10 @@ BEGIN {
 	if x != 2 {
 		print "got", x, "want 2";
 	};
+
+	x .= 73
+	if x != "273" {
+		printf "got %v, want %v", x, "273";
+	}
 }
 

@@ -46,7 +46,7 @@ var (
 %token        IF ELSE
 %token        FOR IN BREAK CONTINUE
 %token        INC DEC
-%token        ADDEQ SUBEQ MULEQ DIVEQ MODEQ
+%token        ADDEQ SUBEQ MULEQ DIVEQ MODEQ CONCATEQ
 %token        FUNC RETURN
 
 %right '?' ':'
@@ -209,6 +209,10 @@ stmt:
 |	addressable MODEQ expr
 	{
 		$$ = &AssignStmt{genDebugInfo(), nil, $1, &BinaryExpr{genDebugInfo(), Mod, $1, $3}}
+	}
+|	addressable CONCATEQ expr
+	{
+		$$ = &AssignStmt{genDebugInfo(), nil, $1, &BinaryExpr{genDebugInfo(), Concat, $1, $3}}
 	}
 |	addressable INC
 	{

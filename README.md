@@ -8,7 +8,7 @@ that I just had to do something. Because of lack of ideas I decided to make an A
 clone.
 
 It was never meant to be a replacement for Awk. I'm doing it just for fun. Nevertheless
-there might be the potential to make it actually useful. Right now, Hawk is unoptimised,
+there might be the potential to make it actually useful. Right now, Hawk is unoptimized,
 definitely slower than the original Awk, and the design is in some ways probably quite
 naive. Anyway, for anyone interested in making a new version of Awk, what would you add,
 leave out, simplify?
@@ -85,7 +85,7 @@ the whole program to print only the lines with the first field greater than
 $1 > 200
 ```
 
-### Summarise a shopping list.
+### Summarize a shopping list.
 
 ```
 lunch    4.99

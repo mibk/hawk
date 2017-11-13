@@ -68,9 +68,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if *fieldSep != "" {
-		prog.SetFieldSep(*fieldSep)
-	}
+	prog.FieldSep = *fieldSep
 	if err := prog.Run(os.Stdout, input); err != nil {
 		log.Fatal(err)
 	}

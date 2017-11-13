@@ -12,6 +12,13 @@ var mu sync.Mutex
 
 // A Program represents a compiled Hawk program.
 type Program struct {
+	// FieldSep specifies the default field separator, FS.
+	// If FieldSep is the empty string, Run runs the program
+	// with the default behaviour, which is to split each
+	// record into fields using one or more white spaces
+	// characters as a separator.
+	FieldSep string
+
 	prog hawkc.Program
 }
 
@@ -24,13 +31,13 @@ func Compile(name string, src io.Reader) (*Program, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Program{*p}, nil
+	return &Program{prog: *p}, nil
 }
-
-// SetFieldSep sets the field separator, FS, to the sep value.
-func (p *Program) SetFieldSep(sep string) { p.prog.SetFieldSep(sep) }
 
 // Run runs the program. It scans src and writes output to w.
 func (p *Program) Run(w io.Writer, src scan.Source) error {
+	if p.FieldSep != "" {
+		p.prog.SetFieldSep(p.FieldSep)
+	}
 	return p.prog.Run(w, src)
 }

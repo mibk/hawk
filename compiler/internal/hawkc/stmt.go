@@ -3,10 +3,9 @@ package hawkc
 import (
 	"fmt"
 	"io"
-	"os/exec"
-	"strings"
 
 	"github.com/mibk/hawk/value"
+	"github.com/mibk/shellexec"
 )
 
 type Status int
@@ -54,27 +53,24 @@ type PipeStmt struct {
 }
 
 func (p *PipeStmt) Exec(w io.Writer) Status {
-	// TODO: better method for argument parsing. (Arguments could be in quotes.)
-	args := strings.Fields(p.Cmd)
-	if len(args) == 0 {
-		p.throw("pipe statement: no command specified")
+	cmd, err := shellexec.Command(p.Cmd)
+	if err != nil {
+		p.throw("pipe statement: %v", err)
 	}
-	name := args[0]
-	cmd := exec.Command(name, args[1:]...)
 	cmd.Stdout, cmd.Stderr = w, w
 	wc, err := cmd.StdinPipe()
 	if err != nil {
-		p.throw("%s: %v", name, err)
+		p.throw("%s: %v", cmd.Path, err)
 	}
 	if err := cmd.Start(); err != nil {
-		p.throw("%s: %v", name, err)
+		p.throw("%s: %v", cmd.Path, err)
 	}
 	st := p.Stmt.Exec(wc)
 	if err := wc.Close(); err != nil {
-		p.throw("%s: %v", name, err)
+		p.throw("%s: %v", cmd.Path, err)
 	}
 	if err := cmd.Wait(); err != nil {
-		p.throw("%s: %v", name, err)
+		p.throw("%s: %v", cmd.Path, err)
 	}
 	return st
 }

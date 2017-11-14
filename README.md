@@ -25,7 +25,7 @@ go get -u github.com/mibk/hawk
 ## Usage
 
 Running `hawk -help` gives you an extended help message on how to use Hawk, although the
-best documentation for the Hawk syntax currently is `test/run` directory.
+best documentation for the Hawk syntax is currently the `testdata` directory.
 
 ```
 Usage: hawk 'program' [file ...]

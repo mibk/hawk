@@ -70,7 +70,7 @@ type Scanner struct {
 	fields        []string
 }
 
-// SetReader sets an io.Reader for scanner to read from.
+// SetSource sets a Source for scanner to read from.
 func (sc *Scanner) SetSource(src Source) {
 	if sc.rowsRx != nil {
 		sc.lr = newRxLineReader(src, sc.rowsRx)

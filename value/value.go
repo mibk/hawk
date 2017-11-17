@@ -30,16 +30,16 @@ const (
 
 type Value interface {
 	// Scalar tries to convert the value into a scalar value.
-	Scalar() (v *Scalar, ok bool)
+	Scalar() (z *Scalar, ok bool)
 
 	// Array tries to convert the value into an array value.
 	Array() (a *Array, ok bool)
 
-	// Cmp returns an integer comparing two values (the receiver r and the
+	// Cmp returns an integer comparing two values (the receiver z and the
 	// parameter v), and a boolean indicating whether it is possible to compare
-	// the values using <, >, <= or >=. The result will be 0 if r == v, -1 if
-	// r < v, and +1 if r > v.
-	Cmp(Value) (cmp int, ok bool)
+	// the values using <, >, <= or >=. The result will be 0 if z == v, -1 if
+	// z < v, and +1 if z > v.
+	Cmp(v Value) (cmp int, ok bool)
 
 	// String returns a string representation of the value.
 	String() string
@@ -75,33 +75,33 @@ func NewBool(b bool) *Scalar {
 	return &Scalar{Bool, "", n}
 }
 
-func (v *Scalar) Scalar() (w *Scalar, ok bool) { return v, true }
-func (v *Scalar) Array() (w *Array, ok bool)   { return nil, false }
+func (z *Scalar) Scalar() (w *Scalar, ok bool) { return z, true }
+func (z *Scalar) Array() (w *Array, ok bool)   { return nil, false }
 
-func (v *Scalar) Type() ScalarType {
-	return v.typ
+func (z *Scalar) Type() ScalarType {
+	return z.typ
 }
 
-func (v *Scalar) Cmp(w Value) (cmp int, ok bool) {
+func (z *Scalar) Cmp(w Value) (cmp int, ok bool) {
 	v2, ok := w.Scalar()
 	if !ok {
 		return -1, false
 	}
-	if v.typ == v2.typ {
-		return v.cmp(v2), true
+	if z.typ == v2.typ {
+		return z.cmp(v2), true
 	}
 	// TODO: Don't use comparing numbers as a fallback.
-	return v.Number().cmp(v2.Number()), true
+	return z.Number().cmp(v2.Number()), true
 }
 
-func (v *Scalar) cmp(b *Scalar) int {
-	switch v.typ {
+func (z *Scalar) cmp(b *Scalar) int {
+	switch z.typ {
 	case String:
-		return strings.Compare(v.string, b.string)
+		return strings.Compare(z.string, b.string)
 	case Number, Bool:
-		if v.number < b.number {
+		if z.number < b.number {
 			return -1
-		} else if v.number > b.number {
+		} else if z.number > b.number {
 			return 1
 		}
 		return 0
@@ -109,31 +109,31 @@ func (v *Scalar) cmp(b *Scalar) int {
 	panic("unknown scalar type")
 }
 
-func (v *Scalar) Number() *Scalar {
-	switch v.typ {
+func (z *Scalar) Number() *Scalar {
+	switch z.typ {
 	case String:
-		v.number, _ = strconv.ParseFloat(v.string, 64)
+		z.number, _ = strconv.ParseFloat(z.string, 64)
 	}
-	v.typ = Number
-	return v
+	z.typ = Number
+	return z
 }
 
-func (v *Scalar) Float64() float64 { return v.Number().number }
-func (v *Scalar) Int() int         { return int(v.Number().number) }
+func (z *Scalar) Float64() float64 { return z.Number().number }
+func (z *Scalar) Int() int         { return int(z.Number().number) }
 
-func (v *Scalar) Bool() bool {
-	cmp, _ := v.Cmp(NewBool(true))
+func (z *Scalar) Bool() bool {
+	cmp, _ := z.Cmp(NewBool(true))
 	return cmp == 0
 }
 
-func (v *Scalar) String() string {
-	switch v.typ {
+func (z *Scalar) String() string {
+	switch z.typ {
 	case String:
-		return v.string
+		return z.string
 	case Number:
-		return fmt.Sprintf("%.8g", v.number)
+		return fmt.Sprintf("%.8g", z.number)
 	case Bool:
-		if v.number == 1 {
+		if z.number == 1 {
 			return "true"
 		}
 		return "false"
@@ -141,43 +141,43 @@ func (v *Scalar) String() string {
 	panic("unknown scalar type")
 }
 
-func (v *Scalar) Encode() string {
-	switch v.typ {
+func (z *Scalar) Encode() string {
+	switch z.typ {
 	case String:
-		return strconv.Quote(v.string)
+		return strconv.Quote(z.string)
 	default:
-		return v.String()
+		return z.String()
 	}
 }
 
-func (v *Scalar) Format(s fmt.State, verb rune) {
+func (z *Scalar) Format(s fmt.State, verb rune) {
 	var val interface{}
 	switch verb {
 	case 'v':
-		fmt.Fprint(s, v.String())
+		fmt.Fprint(s, z.String())
 		return
 	case 'V':
-		fmt.Fprint(s, v.Type())
+		fmt.Fprint(s, z.Type())
 		return
 	// Boolean:
 	case 't':
-		val = v.Bool()
+		val = z.Bool()
 	// Integer:
 	case 'b', 'c', 'd', 'o', 'U':
 		// TODO: %b is different for integer and float.
-		val = v.Int()
+		val = z.Int()
 	// Floating-point:
 	case 'e', 'E', 'f', 'F', 'g', 'G':
-		val = v.Float64()
+		val = z.Float64()
 	// String:
 	case 's':
-		val = v.String()
+		val = z.String()
 	// Common for String and Integer
 	case 'q', 'x', 'X':
-		if v.typ == String {
-			val = v.string
+		if z.typ == String {
+			val = z.string
 		} else {
-			val = v.Int()
+			val = z.Int()
 		}
 	}
 	fmt.Fprintf(s, formatVerb(s, verb), val)
@@ -201,8 +201,8 @@ func formatVerb(s fmt.State, verb rune) string {
 	return buf.String()
 }
 
-func (v *Scalar) Len() int {
-	return len(v.String())
+func (z *Scalar) Len() int {
+	return len(z.String())
 }
 
 func (z *Scalar) Add(x, y *Scalar) *Scalar {

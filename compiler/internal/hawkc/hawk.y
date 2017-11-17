@@ -1,4 +1,5 @@
 %{
+// Package hawkc is the Hawk compiler.
 package hawkc
 
 import (

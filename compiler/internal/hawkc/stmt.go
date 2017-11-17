@@ -145,12 +145,12 @@ func (f *ForStmt) Exec(w io.Writer) Status {
 				f.throw("non-scalar value used as a condition")
 			}
 			if !v.Bool() {
-				break
+				return StatusNone
 			}
 		}
 		switch f.Body.Exec(w) {
 		case StatusBreak:
-			break
+			return StatusNone
 		case StatusReturn:
 			return StatusReturn
 		}
@@ -158,7 +158,6 @@ func (f *ForStmt) Exec(w io.Writer) Status {
 			f.Post.Exec(w)
 		}
 	}
-	return StatusNone
 }
 
 type ForeachStmt struct {
@@ -183,7 +182,7 @@ func (fs ForeachStmt) Exec(w io.Writer) Status {
 		}
 		switch fs.Body.Exec(w) {
 		case StatusBreak:
-			break
+			return StatusNone
 		case StatusReturn:
 			return StatusReturn
 		}

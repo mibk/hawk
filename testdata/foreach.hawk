@@ -4,4 +4,8 @@ END {
 	for k, v in sum {
 		print k, v
 	}
+	for k, v in sum {
+		print 'only once'
+		break
+	}
 }

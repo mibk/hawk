@@ -50,7 +50,7 @@ func TestRun(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			if got := out.Bytes(); bytes.Compare(got, want) != 0 {
+			if got := out.Bytes(); !bytes.Equal(got, want) {
 				t.Errorf("%s.out:\n got:\n`%s`\nwant:\n`%s`", name, string(got), string(want))
 			}
 		})

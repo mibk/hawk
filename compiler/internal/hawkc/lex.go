@@ -123,7 +123,7 @@ func (l *yyLex) Lex(yylval *yySymType) (tok int) {
 						return eof
 					} else if r == '*' && l.accept('/') {
 						break
-					} else if nl == false && r == '\n' {
+					} else if !nl && r == '\n' {
 						lexlineno--
 						nl = true
 					}
